@@ -57,17 +57,17 @@ entity toplevel is
     MIKUMARI_TXN             : out std_logic;
 
 -- EEPROM ---------------------------------------------------------------
-    EEP_CS              : out std_logic_vector(2 downto 1);
-    EEP_SK              : out std_logic_vector(2 downto 1);
-    EEP_DI              : out std_logic_vector(2 downto 1);
-    EEP_DO              : in std_logic_vector(2 downto 1);
+    EEP_CS              : out std_logic;
+    EEP_SK              : out std_logic;
+    EEP_DI              : out std_logic;
+    EEP_DO              : in std_logic;
 
 -- NIM-IO ---------------------------------------------------------------
     NIM_IN              : in std_logic_vector(2 downto 1);
     NIM_OUT             : out std_logic_vector(2 downto 1);
 
 -- JItter cleaner -------------------------------------------------------
-    CDCE_PDB            : out std_logic;
+--    CDCE_PDB            : out std_logic;
 --    CDCE_LOCK           : in std_logic;
 --    CDCE_SCLK           : out std_logic;
 --    CDCE_SO             : in std_logic;
@@ -94,10 +94,34 @@ entity toplevel is
 
 -- Dwon slot --
     MZN_DP              : in std_logic_vector(31 downto 0);
-    MZN_DN              : in std_logic_vector(31 downto 0)
+    MZN_DN              : in std_logic_vector(31 downto 0);
 
 -- DDR3 SDRAM -----------------------------------------------------------
 
+-- PHY ------------------------------------------------------------------
+    PHY_MDIO	    : inout std_logic;
+    PHY_MDC       : out std_logic;
+    PHY_nRST      : out std_logic;
+    PHY_HPD       : out std_logic;
+    PHY_IRQ      : in std_logic;
+
+    PHY_RXD       : in std_logic_vector(7 downto 0);
+    PHY_RXDV      : in std_logic;
+    PHY_RXER      : in std_logic;
+    PHY_RX_CLK    : in std_logic;
+              
+    PHY_TXD       : out std_logic_vector(7 downto 0);
+    PHY_TXEN      : out std_logic;
+    PHY_TXER      : out std_logic;
+    PHY_TX_CLK    : in std_logic;
+              
+    PHY_GTX_CLK   : out std_logic;
+              
+    PHY_CRS       : in std_logic;
+    PHY_COL       : in std_logic;
+
+    --Temp
+    clk_gtx       : in std_logic
   );
 end toplevel;
 
@@ -345,11 +369,13 @@ architecture Behavioral of toplevel is
   type typeUdpData is array(kNumGtx-1 downto 0) of std_logic_vector(kWidthDataRBCP-1 downto 0);
   type typeIpAddr  is array(kNumGtx-1 downto 0) of std_logic_vector(31 downto 0);
 
+  signal mdio_out, mdio_oe : std_logic;
+
   signal sitcp_ip_addr  : typeIpAddr;
 
   signal tcp_isActive, close_req, close_act    : std_logic_vector(kNumGtx-1 downto 0);
 
-  signal tcp_tx_clk   : std_logic_vector(kNumGtx-1 downto 0);
+  signal tcp_tx_clk   : std_logic;
   signal tcp_rx_wr    : std_logic_vector(kNumGtx-1 downto 0);
   signal tcp_rx_data  : typeTcpData;
   signal tcp_tx_full  : std_logic_vector(kNumGtx-1 downto 0);
@@ -1089,7 +1115,7 @@ architecture Behavioral of toplevel is
       );
 
   -- C6C -------------------------------------------------------------------------------
-  CDCE_PDB  <= '0';
+  --CDCE_PDB  <= '0';
 --  u_C6C_Inst : entity mylib.CDCE62002Controller
 --    generic map(
 --      kSysClkFreq         => 125_000_000
@@ -1218,6 +1244,11 @@ architecture Behavioral of toplevel is
       );
 
   -- SiTCP Inst ------------------------------------------------------------------------
+  PHY_MDIO    <= mdio_out when(mdio_oe = '1') else 'Z';
+  tcp_tx_clk  <= clk_gtx;
+  PHY_GTX_CLK <= clk_gtx;
+  PHY_HPD     <= '0';
+
   u_SiTCPRst : entity mylib.ResetGen
     port map(pwr_on_reset or (not pcs_pma_status(kPcsPmaLinkStatus)) or rst_from_miku, clk_sys, sitcp_reset);
 
@@ -1237,35 +1268,35 @@ architecture Behavioral of toplevel is
         EXT_RBCP_PORT     => X"0000", --: RBCP port #[15:0]
         PHY_ADDR          => "00000", --: PHY-device MIF address[4:0]
         -- EEPROM
-        EEPROM_CS         => EEP_CS(i+1), --: Chip select
-        EEPROM_SK         => EEP_SK(i+1), --: Serial data clock
-        EEPROM_DI         => EEP_DI(i+1), --: Serial write data
-        EEPROM_DO         => EEP_DO(i+1), --: Serial read data
+        EEPROM_CS         => EEP_CS, --: Chip select
+        EEPROM_SK         => EEP_SK, --: Serial data clock
+        EEPROM_DI         => EEP_DI, --: Serial write data
+        EEPROM_DO         => EEP_DO, --: Serial read data
         --    user data, intialial values are stored in the EEPROM, 0xFFFF_FC3C-3F
         USR_REG_X3C       => open, --: Stored at 0xFFFF_FF3C
         USR_REG_X3D       => open, --: Stored at 0xFFFF_FF3D
         USR_REG_X3E       => open, --: Stored at 0xFFFF_FF3E
         USR_REG_X3F       => open, --: Stored at 0xFFFF_FF3F
         -- MII interface
-        GMII_RSTn         => open, --: PHY reset
+        GMII_RSTn         => PHY_nRST, --: PHY reset
         GMII_1000M        => '1',  --: GMII mode (0:MII, 1:GMII)
         -- TX
-        GMII_TX_CLK       => eth_tx_clk(i), --: Tx clock
-        GMII_TX_EN        => eth_tx_en(i),  --: Tx enable
-        GMII_TXD          => eth_tx_d(i),   --: Tx data[7:0]
-        GMII_TX_ER        => eth_tx_er(i),  --: TX error
+        GMII_TX_CLK       => tcp_tx_clk, --: Tx clock #
+        GMII_TX_EN        => PHY_TXEN,  --: Tx enable
+        GMII_TXD          => PHY_TXD,   --: Tx data[7:0]
+        GMII_TX_ER        => PHY_TXER,  --: TX error
         -- RX
-        GMII_RX_CLK       => eth_rx_clk(0), --: Rx clock
-        GMII_RX_DV        => eth_rx_dv(i),  --: Rx data valid
-        GMII_RXD          => eth_rx_d(i),   --: Rx data[7:0]
-        GMII_RX_ER        => eth_rx_er(i),  --: Rx error
-        GMII_CRS          => '0', --: Carrier sense
-        GMII_COL          => '0', --: Collision detected
+        GMII_RX_CLK       => PHY_RX_CLK, --: Rx clock
+        GMII_RX_DV        => PHY_RXDV,  --: Rx data valid
+        GMII_RXD          => PHY_RXD,   --: Rx data[7:0]
+        GMII_RX_ER        => PHY_RXER,  --: Rx error
+        GMII_CRS          => PHY_CRS, --: Carrier sense
+        GMII_COL          => PHY_COL, --: Collision detected
         -- Management IF
-        GMII_MDC          => open, --: Clock for MDIO
-        GMII_MDIO_IN      => '1', -- : Data
-        GMII_MDIO_OUT     => open, --: Data
-        GMII_MDIO_OE      => open, --: MDIO output enable
+        GMII_MDC          => PHY_MDC, --: Clock for MDIO
+        GMII_MDIO_IN      => PHY_MDIO, -- : Data
+        GMII_MDIO_OUT     => mdio_out, --: Data
+        GMII_MDIO_OE      => mdio_oe, --: MDIO output enable
         -- User I/F
         SiTCP_RST         => emergency_reset(i), --: Reset for SiTCP and related circuits
         IP_ADDR           => sitcp_ip_addr(i),
