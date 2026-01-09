@@ -30,23 +30,11 @@ entity toplevel is
     -- System ---------------------------------------------------------------
     PROGB_ON            : out std_logic;
     CLKOSC              : in  std_logic;
-    --BASE_CLKP           : in std_logic;
-    --BASE_CLKN           : in std_logic;
     USR_RSTB            : in std_logic;
     LED                 : out std_logic_vector(4 downto 1);
     DIP                 : in std_logic_vector(8 downto 1); --TODO: Change to 8 //done
     VP                  : in std_logic;
     VN                  : in std_logic;
-
--- GTX ------------------------------------------------------------------
-    --GTX_REFCLK_P        : in std_logic;
-    --GTX_REFCLK_N        : in std_logic;
-    --GTX_TX_P            : out std_logic_vector(1 downto 1);
-    --GTX_RX_P            : in  std_logic_vector(1 downto 1);
-    --GTX_TX_N            : out std_logic_vector(1 downto 1);
-    --GTX_RX_N            : in  std_logic_vector(1 downto 1);
-
-  
 
 -- SPI flash ------------------------------------------------------------
     MOSI                : out std_logic;
@@ -106,7 +94,7 @@ entity toplevel is
     PHY_MDC       : out std_logic;
     PHY_nRST      : out std_logic;
     PHY_HPD       : out std_logic;
-    PHY_IRQ      : in std_logic;
+    --PHY_IRQ      : in std_logic;
 
     PHY_RXD       : in std_logic_vector(7 downto 0);
     PHY_RXDV      : in std_logic;
