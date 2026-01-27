@@ -35,19 +35,23 @@ set_property PACKAGE_PIN A25 [get_ports DIN]
 set_property PACKAGE_PIN C23 [get_ports FCSB]
 
 # MIKUMARI connector ---------------------------------------------------
-# GN-2006-1
-# TODO : Adjust to mezzanine
-set_property PACKAGE_PIN B20 [get_ports MIKUMARI_RXP]
-set_property PACKAGE_PIN A20 [get_ports MIKUMARI_RXN]
-set_property PACKAGE_PIN A23 [get_ports MIKUMARI_TXP]
-set_property PACKAGE_PIN A24 [get_ports MIKUMARI_TXN]
+# TODO : Adjust to mezzanine : done
+# StrHUL
+set_property PACKAGE_PIN AA10 [get_ports MIKUMARI_RXP]
+set_property PACKAGE_PIN AB10 [get_ports MIKUMARI_RXN]
+set_property PACKAGE_PIN AA12 [get_ports MIKUMARI_TXP]
+set_property PACKAGE_PIN AA13 [get_ports MIKUMARI_TXN]
 
-# GN-2006-4
-#set_property PACKAGE_PIN AB16 [get_ports MIKUMARI_RXP]
-#set_property PACKAGE_PIN AC16 [get_ports MIKUMARI_RXN]
-#set_property PACKAGE_PIN AB17 [get_ports MIKUMARI_TXP]
-#set_property PACKAGE_PIN AC17 [get_ports MIKUMARI_TXN]
+# Remaining pins for MIKUMARI
+# set_property PACKAGE_PIN Y15  [get_ports MIKUMARI_RXP1]
+# set_property PACKAGE_PIN Y16  [get_ports MIKUMARI_RXN1]
+# set_property PACKAGE_PIN AB15 [get_ports MIKUMARI_TXP1]
+# set_property PACKAGE_PIN AB14 [get_ports MIKUMARI_TXN1]
 
+# set_property PACKAGE_PIN AA19 [get_ports MIKUMARI_RXP0]
+# set_property PACKAGE_PIN AA20 [get_ports MIKUMARI_RXN0]
+# set_property PACKAGE_PIN AA18 [get_ports MIKUMARI_TXP0]
+# set_property PACKAGE_PIN AA17 [get_ports MIKUMARI_TXN0]
 
 # EEPROM ---------------------------------------------------------------
 set_property PACKAGE_PIN D15 [get_ports EEP_CS]
@@ -218,29 +222,21 @@ set_property PACKAGE_PIN AE7 [get_ports {MZN_Up[30]}]
 set_property PACKAGE_PIN AF7 [get_ports {MZN_Un[30]}]
 set_property PACKAGE_PIN AE8 [get_ports {MZN_Up[31]}]
 set_property PACKAGE_PIN AF8 [get_ports {MZN_Un[31]}]
-# Down slot -- TODO: Adjust to MIKUMARI
+
+# Down slot -- TODO: Adjust to MIKUMARI : Need to check
 # set_property PACKAGE_PIN Y8 [get_ports {MZN_Dp[0]}]
 # set_property PACKAGE_PIN Y7 [get_ports {MZN_Dn[0]}]
 # set_property PACKAGE_PIN Y11 [get_ports {MZN_Dp[1]}]
 # set_property PACKAGE_PIN Y10 [get_ports {MZN_Dn[1]}]
 # set_property PACKAGE_PIN Y13 [get_ports {MZN_Dp[2]}]
 # set_property PACKAGE_PIN Y12 [get_ports {MZN_Dn[2]}]
-# set_property PACKAGE_PIN AA13 [get_ports {MZN_Dp[3]}]
-# set_property PACKAGE_PIN AA12 [get_ports {MZN_Dn[3]}]
-# set_property PACKAGE_PIN AA10 [get_ports {MZN_Dp[4]}]
-# set_property PACKAGE_PIN AB10 [get_ports {MZN_Dn[4]}]
+## ------- MIKUMARI 2---------------------------------
 # set_property PACKAGE_PIN AA14 [get_ports {MZN_Dp[5]}]
 # set_property PACKAGE_PIN AA15 [get_ports {MZN_Dn[5]}]
-# set_property PACKAGE_PIN AB14 [get_ports {MZN_Dp[6]}]
-# set_property PACKAGE_PIN AB15 [get_ports {MZN_Dn[6]}]
-# set_property PACKAGE_PIN Y15 [get_ports {MZN_Dp[7]}]
-# set_property PACKAGE_PIN Y16 [get_ports {MZN_Dn[7]}]
+## ------- MIKUMARI 1---------------------------------
 # set_property PACKAGE_PIN Y17 [get_ports {MZN_Dp[8]}]
 # set_property PACKAGE_PIN Y18 [get_ports {MZN_Dn[8]}]
-# set_property PACKAGE_PIN AA17 [get_ports {MZN_Dp[9]}]
-# set_property PACKAGE_PIN AA18 [get_ports {MZN_Dn[9]}]
-# set_property PACKAGE_PIN AA19 [get_ports {MZN_Dp[10]}]
-# set_property PACKAGE_PIN AA20 [get_ports {MZN_Dn[10]}]
+## ------- MIKUMARI 0---------------------------------
 # set_property PACKAGE_PIN W15 [get_ports {MZN_Dp[11]}]
 # set_property PACKAGE_PIN W16 [get_ports {MZN_Dn[11]}]
 # set_property PACKAGE_PIN W18 [get_ports {MZN_Dp[12]}]
@@ -283,6 +279,17 @@ set_property PACKAGE_PIN AF8 [get_ports {MZN_Un[31]}]
 # set_property PACKAGE_PIN AF20 [get_ports {MZN_Dn[30]}]
 # set_property PACKAGE_PIN AD20 [get_ports {MZN_Dp[31]}]
 # set_property PACKAGE_PIN AE20 [get_ports {MZN_Dn[31]}]
+
+##Remaining pins for MIKUMARI
+# set_property PACKAGE_PIN AB14 [get_ports {MZN_Dp[6]}]
+# set_property PACKAGE_PIN AB15 [get_ports {MZN_Dn[6]}]
+# set_property PACKAGE_PIN Y15 [get_ports {MZN_Dp[7]}]
+# set_property PACKAGE_PIN Y16 [get_ports {MZN_Dn[7]}]
+
+# set_property PACKAGE_PIN AA17 [get_ports {MZN_Dp[9]}]
+# set_property PACKAGE_PIN AA18 [get_ports {MZN_Dn[9]}]
+# set_property PACKAGE_PIN AA19 [get_ports {MZN_Dp[10]}]
+# set_property PACKAGE_PIN AA20 [get_ports {MZN_Dn[10]}]
 
 # PHY -- Copy from HUL pin.xdc
 set_property PACKAGE_PIN E26 [get_ports PHY_MDIO]
@@ -350,16 +357,11 @@ set_property IOSTANDARD LVCMOS33 [get_ports FCSB]
 set_property IOB TRUE [get_ports FCSB]
 
 # EXBASE connector -----------------------------------------------------
-# GN-2006-1
-# TODO : Adjust to mezzanine
-set_property IOSTANDARD LVDS_25 [get_ports MIKUMARI_TXP]
-set_property IOSTANDARD LVDS_25 [get_ports MIKUMARI_RXP]
+# TODO : Adjust to mezzanine : done
+# StrHUL
+set_property IOSTANDARD LVDS [get_ports MIKUMARI_TXP]
+set_property IOSTANDARD LVDS [get_ports MIKUMARI_RXP]
 set_property DIFF_TERM TRUE [get_ports MIKUMARI_RXP]
-
-# GN-2006-4
-#set_property IOSTANDARD LVDS [get_ports MIKUMARI_TXP]
-#set_property IOSTANDARD LVDS [get_ports MIKUMARI_RXP]
-#set_property DIFF_TERM TRUE [get_ports MIKUMARI_RXP]
 
 # EEPROM ---------------------------------------------------------------
 set_property IOSTANDARD LVCMOS33 [get_ports EEP_CS]
@@ -395,42 +397,11 @@ set_property IOSTANDARD LVCMOS33 [get_ports {MAIN_IN_D[*]}]
 
 # Mezzanine slot -- TODO: Adjust to MIKUMARI
 # Up slot --
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_UP[*]}]
+set_property IOSTANDARD LVDS [get_ports {MZN_UP[*]}]
 set_property DIFF_TERM true [get_ports {MZN_UP[*]}]
-# Down port --
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[0]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[1]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[2]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[3]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[4]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[5]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[6]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[7]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[8]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[9]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[10]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[11]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[12]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[13]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[14]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[15]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[16]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[17]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[18]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[19]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[20]}]
-set_property IOSTANDARD LVDS [get_ports {MZN_DP[21]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[22]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[23]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[24]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[25]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[26]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[27]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[28]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[29]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[30]}]
-set_property IOSTANDARD LVDS_25 [get_ports {MZN_DP[31]}]
-set_property DIFF_TERM true [get_ports {MZN_DP[*]}]
+# Down port -- Need to check
+# set_property IOSTANDARD LVDS [get_ports {MZN_DP[*]}]
+# set_property DIFF_TERM true [get_ports {MZN_DP[*]}]
 
 # PHY -- Copy from HUL
 set_property IOSTANDARD LVCMOS33 [get_ports PHY_MDIO]
