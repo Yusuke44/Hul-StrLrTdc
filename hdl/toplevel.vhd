@@ -111,8 +111,6 @@ entity toplevel is
     PHY_CRS       : in std_logic;
     PHY_COL       : in std_logic
 
-    --Temp
-    -- clk_gtx       : in std_logic
   );
 end toplevel;
 
@@ -1241,10 +1239,9 @@ architecture Behavioral of toplevel is
       );
 
   -- SiTCP Inst ------------------------------------------------------------------------
-  clk_gtx     <= clk_sys;
   PHY_MDIO    <= mdio_out when(mdio_oe = '1') else 'Z';
-  tcp_tx_clk  <= clk_gtx;
-  PHY_GTX_CLK <= clk_gtx;
+  tcp_tx_clk  <= clk_sys; -- 2026/01/28
+  PHY_GTX_CLK <= clk_sys; -- 2026/01/28
   PHY_HPD     <= '0';
 
   u_SiTCPRst : entity mylib.ResetGen
