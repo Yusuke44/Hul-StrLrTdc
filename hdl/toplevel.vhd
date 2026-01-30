@@ -619,10 +619,10 @@ architecture Behavioral of toplevel is
   dip_sw(2)   <= DIP(2);
   dip_sw(3)   <= DIP(3);
   dip_sw(4)   <= DIP(4);
-  dip_sw(4)   <= DIP(5);
-  dip_sw(4)   <= DIP(6);
-  dip_sw(4)   <= DIP(7);
-  dip_sw(4)   <= DIP(8); --TODO: Change to 8 //done
+  dip_sw(5)   <= DIP(5);
+  dip_sw(6)   <= DIP(6);
+  dip_sw(7)   <= DIP(7);
+  dip_sw(8)   <= DIP(8); --TODO: Change to 8 //done
 
   LED         <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq & daq_is_runnig;
 
@@ -678,7 +678,7 @@ architecture Behavioral of toplevel is
         kCdcmModWidth    => 8,
         -- CDCM-TX --
         kIoStandardTx    => "LVDS",
-        kTxPolarity      => FALSE,
+        kTxPolarity      => TRUE,
         -- CDCM-RX --
         genIDELAYCTRL    => TRUE,
         kDiffTerm        => TRUE,
