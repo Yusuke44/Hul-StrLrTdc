@@ -79,9 +79,9 @@ entity toplevel is
     MAIN_IN_D           : in std_logic_vector(31 downto 0);
 
 -- Mezzanine slot -------------------------------------------------------
--- Up slot --
-    MZN_UP              : in std_logic_vector(31 downto 0);
-    MZN_UN              : in std_logic_vector(31 downto 0);
+-- Up slot -- 2026/02/13 Comment out
+    -- MZN_UP              : in std_logic_vector(31 downto 0);
+    -- MZN_UN              : in std_logic_vector(31 downto 0);
 
 -- Dwon slot --
     -- MZN_DP              : in std_logic_vector(31 downto 0);
@@ -124,7 +124,7 @@ architecture Behavioral of toplevel is
   constant kNumBitDIP   : integer:= 4;
   constant kNumNIM      : integer:= 4; --TODO: change to 4 //done
   constant kNumPHY      : integer:= 1;
-  constant kNumInputMZN : integer:= 32;
+  --constant kNumInputMZN : integer:= 32; 2026/02/13 Comment out
 
   signal sitcp_reset  : std_logic;
   signal raw_pwr_on_reset : std_logic;
@@ -151,8 +151,8 @@ architecture Behavioral of toplevel is
 
   signal local_trigger_in : std_logic;
 
-  -- Hit Input definition --
-  constant kNumInput    : integer:= 96;
+  -- Hit Input definition -- 2026/02/13 Change from 96 to 64
+  constant kNumInput    : integer:= 64; 
 
   -- DIP -----------------------------------------------------------------------------------
   signal dip_sw       : std_logic_vector(DIP'range);
@@ -168,9 +168,10 @@ architecture Behavioral of toplevel is
 
   -- Mezzanine ----------------------------------------------------------------------------
   -- DCR --
-  signal mzn_u        : std_logic_vector(kNumInputMZN-1 downto 0);
+  -- 2026/02/13 Comment out mzn_u and dcr_u
+  -- signal mzn_u        : std_logic_vector(kNumInputMZN-1 downto 0);
   --signal mzn_d        : std_logic_vector(kNumInputMZN-1 downto 0);
-  signal dcr_u        : std_logic_vector(kNumInputMZN-1 downto 0);
+  -- signal dcr_u        : std_logic_vector(kNumInputMZN-1 downto 0);
   --signal dcr_d        : std_logic_vector(kNumInputMZN-1 downto 0);
 
   -- MIKUMARI -----------------------------------------------------------------------------
@@ -633,17 +634,18 @@ architecture Behavioral of toplevel is
   miku_rxn(kIdMikuSec)  <= MIKUMARI_RXN;
 
   -- DCR TODO: One mez
-  gen_dcr : for i in 0 to kNumInputMZN-1 generate
-    dcr_u_IBUFDS_inst : IBUFDS
-      generic map (
-        DIFF_TERM     => TRUE,  -- Differential Termination
-        IBUF_LOW_PWR  => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
-        IOSTANDARD    => DcrUIoStd(i)
-      )port map (
-        O   => mzn_u(i),  -- Buffer output
-        I   => MZN_UP(i), -- Diff_p buffer input (connect directly to top-level port)
-        IB  => MZN_UN(i)  -- Diff_n buffer input (connect directly to top-level port)
-      );
+  --2026/02/13 Comment out MZN_U
+  -- gen_dcr : for i in 0 to kNumInputMZN-1 generate
+  --   dcr_u_IBUFDS_inst : IBUFDS
+  --     generic map (
+  --       DIFF_TERM     => TRUE,  -- Differential Termination
+  --       IBUF_LOW_PWR  => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
+  --       IOSTANDARD    => DcrUIoStd(i)
+  --     )port map (
+  --       O   => mzn_u(i),  -- Buffer output
+  --       I   => MZN_UP(i), -- Diff_p buffer input (connect directly to top-level port)
+  --       IB  => MZN_UN(i)  -- Diff_n buffer input (connect directly to top-level port)
+  --     );
   --  dcr_d_IBUFDS_inst : IBUFDS
   --     generic map (
   --       DIFF_TERM     => TRUE,  -- Differential Termination
@@ -654,15 +656,16 @@ architecture Behavioral of toplevel is
   --       I   => MZN_DP(i), -- Diff_p buffer input (connect directly to top-level port)
   --       IB  => MZN_DN(i)  -- Diff_n buffer input (connect directly to top-level port)
   --     );
-  end generate;
+  --end generate;
 
-  u_DCR_NetAssign: entity mylib.DCR_NetAssign
-  port map(
-    mznInU  => mzn_u,
-    mznInD  => (others => '0'),
-    dcrOutU => dcr_u,
-    dcrOutD => open
-  );
+  -- 2026/02/13 Comment out DCR_NetAssign
+  -- u_DCR_NetAssign: entity mylib.DCR_NetAssign
+  -- port map(
+  --   mznInU  => mzn_u,
+  --   mznInD  => (others => '0'),
+  --   dcrOutU => dcr_u,
+  --   dcrOutD => open
+  -- );
 
   -- MIKUMARI --------------------------------------------------------------------------
   u_KeepInit : entity mylib.RstDelayTimer
@@ -996,7 +999,8 @@ architecture Behavioral of toplevel is
 
   --
   -- Streaming LR-TDC ---------------------------------------------------------------------
-  signal_in_merge   <= dcr_u & MAIN_IN_D & MAIN_IN_U;
+  signal_in_merge   <= MAIN_IN_D & MAIN_IN_U;
+  -- signal_in_merge   <= dcr_u & MAIN_IN_D & MAIN_IN_U; 2024/06/13 Comment out DCR input
   strtdc_trigger_in <= laccp_pulse_out(kDownPulseTrigger) or local_trigger_in;
 
   u_SLT_Inst: entity mylib.StrLrTdc
