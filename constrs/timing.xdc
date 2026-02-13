@@ -64,6 +64,18 @@ set_multicycle_path -setup -from [get_clocks clk_tdc3] -to [get_clocks clk_tdc0]
 #set_clock_groups -name async_sys_gmii -asynchronous -group clk_sys -group clk_indep -group clk_spi -group {clk_fast clk_slow clk_tdc0 clk_tdc1 clk_tdc2 clk_tdc3}
 set_clock_groups -name async_sys_gmii -asynchronous -group clk_sys -group clk_indep -group clk_spi -group {clk_fast clk_slow clk_tdc0 clk_tdc1 clk_tdc2 clk_tdc3}
 
+#2026/02/13 Test
+# set_clock_groups -name async_sys_gmii -asynchronous \
+#     -group [get_clocks - of_objects [get_pins u_ClkMan_Inst/inst/mmcm_adv_inst/CLKOUT0]] \
+#     -group [get_clocks - of_objects [get_pins u_ClkMan_Inst/inst/mmcm_adv_inst/CLKOUT1]] \
+#     -group [get_clocks - of_objects [get_pins u_ClkMan_Inst/inst/mmcm_adv_inst/CLKOUT2]] \
+#     -group {[get_clocks - of_objects [get_pins u_CdcmMan_Inst/inst/mmcm_adv_inst/CLKOUT1]] \
+#     [get_clocks - of_objects [get_pins u_CdcmMan_Inst/inst/mmcm_adv_inst/CLKOUT0]] \
+#     [get_clocks - of_objects [get_pins u_CdcmMan_Inst/inst/mmcm_adv_inst/CLKOUT2]] \
+#     [get_clocks - of_objects [get_pins u_CdcmMan_Inst/inst/mmcm_adv_inst/CLKOUT3]] \
+#     [get_clocks - of_objects [get_pins u_CdcmMan_Inst/inst/mmcm_adv_inst/CLKOUT4]] \
+#     [get_clocks - of_objects [get_pins u_CdcmMan_Inst/inst/mmcm_adv_inst/CLKOUT5]]}
+
 set_false_path -through [get_ports {LED[1]}]
 set_false_path -through [get_ports {LED[2]}]
 set_false_path -through [get_ports {LED[3]}]
