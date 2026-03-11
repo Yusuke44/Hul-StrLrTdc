@@ -623,9 +623,10 @@ architecture Behavioral of toplevel is
   dip_sw(5)   <= DIP(5);
   dip_sw(6)   <= DIP(6);
   dip_sw(7)   <= DIP(7);
-  dip_sw(8)   <= DIP(8); --TODO: Change to 8 //done
+  dip_sw(8)   <= DIP(8);
 
-  LED         <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq & daq_is_runnig;
+  -- 2026/02/28 Temporary comment out for debug
+   LED        <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq & daq_is_runnig;
 
   -- Mezzanine connection --------------------------------------------------------------
   MIKUMARI_TXP  <= miku_txp(kIdMikuSec);
@@ -681,7 +682,7 @@ architecture Behavioral of toplevel is
         kCdcmModWidth    => 8,
         -- CDCM-TX --
         kIoStandardTx    => "LVDS",
-        kTxPolarity      => TRUE,
+        kTxPolarity      => FALSE, 
         -- CDCM-RX --
         genIDELAYCTRL    => TRUE,
         kDiffTerm        => TRUE,
@@ -696,7 +697,7 @@ architecture Behavioral of toplevel is
         -- Master/Slave
         kCbtMode         => "Slave",
         -- DEBUG --
-        enDebugCBT       => FALSE,
+        enDebugCBT       => FALSE, -- For debugging : TRUE
 
         -- MIKUMARI generic --------------------------------------------------------
         enScrambler      => TRUE,
