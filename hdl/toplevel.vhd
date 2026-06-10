@@ -47,6 +47,12 @@ entity toplevel is
     MIKUMARI_TXP             : out std_logic;
     MIKUMARI_TXN             : out std_logic;
 
+    -- Mikumari Daisy Chain
+    CDCM_RXP                 : in std_logic_vector(0 downto 0);
+    CDCM_RXN                 : in std_logic_vector(0 downto 0);
+    CDCM_TXP                 : out std_logic_vector(0 downto 0);
+    CDCM_TXN                 : out std_logic_vector(0 downto 0);
+
 -- EEPROM ---------------------------------------------------------------
     EEP_CS              : out std_logic;
     EEP_SK              : out std_logic;
@@ -186,8 +192,9 @@ architecture Behavioral of toplevel is
   --   end case;
   -- end function;
 
-  constant kNumMikumari       : integer:= 1;
-  constant kIdMikuSec         : integer:= 0;
+  constant kNumMikumari       : integer:= 2;
+  constant kIdMikuSec         : integer:= 1;
+  constant kIdMikuCDD0        : integer:= 0;
 
   signal miku_txp, miku_txn, miku_rxp, miku_rxn   : std_logic_vector(kNumMikumari-1 downto 0);
 
@@ -634,6 +641,11 @@ architecture Behavioral of toplevel is
   miku_rxp(kIdMikuSec)  <= MIKUMARI_RXP;
   miku_rxn(kIdMikuSec)  <= MIKUMARI_RXN;
 
+  CDCM_TXP    <= miku_txp(kNumMikumari-2 downto 0);
+  CDCM_TXN    <= miku_txn(kNumMikumari-2 downto 0);
+  miku_rxp(kNumMikumari-2 downto 0)  <= CDCM_RXP;
+  miku_rxn(kNumMikumari-2 downto 0)  <= CDCM_RXN;
+
   -- DCR TODO: One mez
   --2026/02/13 Comment out MZN_U
   -- gen_dcr : for i in 0 to kNumInputMZN-1 generate
@@ -672,8 +684,202 @@ architecture Behavioral of toplevel is
   u_KeepInit : entity mylib.RstDelayTimer
     port map(system_reset, X"0FFFFFFF", clk_slow, open, power_on_init );
 
-  gen_mikumari : for i in 0 to kNumMikumari-1 generate
+  -- Secondary Links ------------------------------------------------------------
+  --gen_mikumari : for i in 0 to kNumMikumari-1 generate
+  laccp_reset(kIdMikuSec) <= system_reset or (not mikumari_link_up(kIdMikuSec));
+
+  u_Miku_Inst : entity mylib.MikumariBlock
+    generic map(
+      -- CBT generic -------------------------------------------------------------
+      -- CDCM-Mod-Pattern --
+      kCdcmModWidth    => 8,
+      -- CDCM-TX --
+      kIoStandardTx    => "LVDS",
+      kTxPolarity      => FALSE, 
+      -- CDCM-RX --
+      genIDELAYCTRL    => TRUE, --Todo Check whether TRUE or FALSE
+      kDiffTerm        => TRUE,
+      kIoStandardRx    => "LVDS",
+      kRxPolarity      => FALSE, --TODO: Need to check
+      kIoDelayGroup    => "idelay_1",
+      kFixIdelayTap    => FALSE,
+      kFreqFastClk     => 500.0,
+      kFreqRefClk      => 200.0,
+      -- Encoder/Decoder
+      kNumEncodeBits   => 1,
+      -- Master/Slave
+      kCbtMode         => "Slave",
+      -- DEBUG --
+      enDebugCBT       => FALSE, -- For debugging : TRUE
+
+      -- MIKUMARI generic --------------------------------------------------------
+      enScrambler      => TRUE,
+      kHighPrecision   => FALSE,
+      -- DEBUG --        enDebugMikumari  => FALSE
+    )
+    port map(
+      -- System ports -----------------------------------------------------------
+      rst           => system_reset,
+      -- rst           => system_reset or DIP(kStandAlone.Index),
+      pwrOnRst      => pwr_on_reset,
+      clkSer        => clk_fast,
+      clkPar        => clk_slow,
+      clkIndep      => clk_gbe,
+      clkIdctrl     => clk_gbe,
+      initIn        => power_on_init or cbt_init_from_mutil(kIdMikuSec),
+
+      TXP           => miku_txp(kIdMikuSec),
+      TXN           => miku_txn(kIdMikuSec),
+      RXP           => miku_rxp(kIdMikuSec),
+      RXN           => miku_rxn(kIdMikuSec),
+      modClk        => mod_clk,
+      tapValueIn    => (others => '0'),
+      txBeat        => open,
+
+      -- CBT ports ------------------------------------------------------------
+      laneUp        => cbt_lane_up(kIdMikuSec),
+      idelayErr     => open,
+      bitslipErr    => open,
+      pattErr       => pattern_error(kIdMikuSec),
+      watchDogErr   => watchdog_error(kIdMikuSec),
+
+      tapValueOut   => tap_value_out(kIdMikuSec),
+      bitslipNum    => bitslip_num_out(kIdMikuSec),
+      serdesOffset  => serdes_offset(kIdMikuSec),
+      firstBitPatt  => open,
+
+      -- Mikumari ports -------------------------------------------------------
+      linkUp        => mikumari_link_up(kIdMikuSec),
+
+      -- TX port --
+      -- Data I/F --
+      dataInTx      => miku_data_tx(kIdMikuSec),
+      validInTx     => miku_valid_tx(kIdMikuSec),
+      frameLastInTx => miku_last_tx(kIdMikuSec),
+      txAck         => miku_tx_ack(kIdMikuSec),
+
+      pulseIn       => pulse_tx(kIdMikuSec),
+      pulseTypeTx   => pulse_type_tx(kIdMikuSec),
+      pulseRegTx    => "0000",
+      busyPulseTx   => busy_pulse_tx(kIdMikuSec),
+
+      -- RX port --
+      -- Data I/F --
+      dataOutRx   => miku_data_rx(kIdMikuSec),
+      validOutRx  => miku_valid_rx(kIdMikuSec),
+      frameLastRx => miku_last_rx(kIdMikuSec),
+      checksumErr => checksum_err(kIdMikuSec),
+      frameBroken => frame_broken(kIdMikuSec),
+      recvTermnd  => recv_terminated(kIdMikuSec),
+
+      pulseOut    => pulse_rx(kIdMikuSec),
+      pulseTypeRx => pulse_type_rx(kIdMikuSec),
+      pulseRegRx  => open
+
+    );
+
+    --
+    --idelay_tap_in   <= unsigned(tap_value_out);
+
+  u_LACCP : entity mylib.LaccpMainBlock
+    generic map
+      (
+        kPrimaryMode      => false,
+        kNumInterconnect  => 1,
+        enDebug           => false
+      )
+    port map
+      (
+        -- System --------------------------------------------------------
+        rst               => laccp_reset(kIdMikuSec),
+        clk               => clk_slow,
+
+        -- User Interface ------------------------------------------------
+        isReadyForDaq     => is_ready_for_daq(kIdMikuSec),
+        laccpPulsesIn     => (others => '0'),
+        laccpPulsesOut    => laccp_pulse_out,
+        pulseInRejected   => open,
+
+        -- RLIGP --
+        addrMyLink        => sitcp_ip_addr(0),
+        validMyLink       => not emergency_reset(0),
+        addrPartnerLink   => link_addr_partter(kIdMikuSec),
+        validPartnerLink  => valid_link_addr(kIdMikuSec),
+
+        -- RCAP --
+        idelayTapIn       => unsigned(tap_value_out(kIdMikuSec)),
+        serdesLantencyIn  => serdes_offset(kIdMikuSec),
+        idelayTapOut      => open,
+        serdesLantencyOut => open,
+
+        hbuIsSyncedIn     => hbu_is_synchronized,
+        syncPulseIn       => '0',
+        syncPulseOut      => sync_pulse_out,
+
+        upstreamOffset    => (others => '0'),
+        validOffset       => valid_hbc_offset,
+        hbcOffset         => hbc_offset,
+        fineOffset        => laccp_fine_offset,
+        fineOffsetLocal   => local_fine_offset,
+
+        -- LACCP Bus Port ------------------------------------------------
+        -- Intra-port--
+        isReadyIntraIn    => is_ready_laccp_intra,
+        dataIntraIn       => data_laccp_intra_in,
+        validIntraIn      => valid_laccp_intra_in,
+        dataIntraOut      => data_laccp_intra_out,
+        validIntraOut     => valid_laccp_intra_out,
+
+        -- Interconnect -- Todo: Check!
+        isReadyInterIn    => (others => '0'),
+        existInterOut     => open,
+        dataInterIn       => (others => (others => '0')),
+        validInterIn      => (others => '0'),
+        dataInterOut      => open,
+        validInterOut     => open,
+
+        -- MIKUMARI-Link -------------------------------------------------
+        mikuLinkUpIn      => mikumari_link_up(kIdMikuSec),
+
+        -- TX port --
+        dataTx            => miku_data_tx(kIdMikuSec),
+        validTx           => miku_valid_tx(kIdMikuSec),
+        frameLastTx       => miku_last_tx(kIdMikuSec),
+        txAck             => miku_tx_ack(kIdMikuSec),
+
+        pulseTx           => pulse_tx(kIdMikuSec),
+        pulseTypeTx       => pulse_type_tx(kIdMikuSec),
+        busyPulseTx       => busy_pulse_tx(kIdMikuSec),
+
+        -- RX port --
+        dataRx            => miku_data_rx(kIdMikuSec),
+        validRx           => miku_valid_rx(kIdMikuSec),
+        frameLastRx       => miku_last_rx(kIdMikuSec),
+        checkSumErrRx     => checksum_err(kIdMikuSec),
+        frameBrokenRx     => frame_broken(kIdMikuSec),
+        recvTermndRx      => recv_terminated(kIdMikuSec),
+
+        pulseRx           => pulse_rx(kIdMikuSec),
+        pulseTypeRx       => pulse_type_rx(kIdMikuSec)
+
+      );
+  --end generate;
+
+  -- Primary Links -----------------------------------------------------------------------------
+  --Todo: Just paste -> Need to modify
+  miku_fanout_reset   <= power_on_init when(DIP(kStandAlone.Index) = '1') else (not is_ready_for_daq(kIdMikuSec));
+
+  gen_mikumari : for i in kIdMikuCDD0 to kNumMikumari-2 generate
     laccp_reset(i) <= system_reset or (not mikumari_link_up(i));
+
+    laccp_pulse_in(i)(kDownPulseTrigger)   <= local_trigger_in or laccp_pulse_out(kDownPulseTrigger);
+    laccp_pulse_in(i)(kDownPulseCntRst)    <= laccp_pulse_out(kDownPulseCntRst) or global_scr_reset or local_scr_reset;
+    laccp_pulse_in(i)(kDownPulseSysRst)    <= rst_over_miku(i);
+    laccp_pulse_in(i)(kDownPulseRSV3)      <= laccp_pulse_out(kDownPulseRSV3);
+    laccp_pulse_in(i)(kDownPulseRSV4)      <= laccp_pulse_out(kDownPulseRSV4);
+    laccp_pulse_in(i)(kDownPulseRSV5)      <= laccp_pulse_out(kDownPulseRSV5);
+    laccp_pulse_in(i)(kDownPulseRSV6)      <= laccp_pulse_out(kDownPulseRSV6);
+    laccp_pulse_in(i)(kDownPulseRSV7)      <= laccp_pulse_out(kDownPulseRSV7);
 
     u_Miku_Inst : entity mylib.MikumariBlock
       generic map(
@@ -681,23 +887,23 @@ architecture Behavioral of toplevel is
         -- CDCM-Mod-Pattern --
         kCdcmModWidth    => 8,
         -- CDCM-TX --
-        kIoStandardTx    => "LVDS",
-        kTxPolarity      => FALSE, 
+        kIoStandardTx    => GetTxIoStd(kPcbVersion, i),
+        kTxPolarity      => GetTxPolarity(i),
         -- CDCM-RX --
-        genIDELAYCTRL    => TRUE,
+        genIDELAYCTRL    => FALSE,
         kDiffTerm        => TRUE,
-        kIoStandardRx    => "LVDS",
-        kRxPolarity      => FALSE, --TODO: Need to check
-        kIoDelayGroup    => "idelay_1",
+        kIoStandardRx    => GetRxIoStd(kPcbVersion, i),
+        kRxPolarity      => GetRxPolarity(i),
+        kIoDelayGroup    => GetIoGroup(kPcbVersion, i),
         kFixIdelayTap    => FALSE,
         kFreqFastClk     => 500.0,
         kFreqRefClk      => 200.0,
         -- Encoder/Decoder
         kNumEncodeBits   => 1,
         -- Master/Slave
-        kCbtMode         => "Slave",
+        kCbtMode         => "Master",
         -- DEBUG --
-        enDebugCBT       => FALSE, -- For debugging : TRUE
+        enDebugCBT       => GetEnDebug(i),
 
         -- MIKUMARI generic --------------------------------------------------------
         enScrambler      => TRUE,
@@ -713,13 +919,13 @@ architecture Behavioral of toplevel is
         clkPar        => clk_slow,
         clkIndep      => clk_gbe,
         clkIdctrl     => clk_gbe,
-        initIn        => power_on_init or cbt_init_from_mutil(i),
+        initIn        => miku_fanout_reset or cbt_init_from_mutil(kIdMikuSec),
 
-        TXP           => MIKUMARI_TXP,
-        TXN           => MIKUMARI_TXN,
-        RXP           => MIKUMARI_RXP,
-        RXN           => MIKUMARI_RXN,
-        modClk        => mod_clk,
+        TXP           => miku_txp(i),
+        TXN           => miku_txn(i),
+        RXP           => miku_rxp(i),
+        RXN           => miku_rxn(i),
+        modClk        => open,
         tapValueIn    => (others => '0'),
         txBeat        => open,
 
@@ -765,27 +971,26 @@ architecture Behavioral of toplevel is
 
       );
 
-    --
-    --idelay_tap_in   <= unsigned(tap_value_out);
 
     u_LACCP : entity mylib.LaccpMainBlock
       generic map
         (
-          kPrimaryMode      => false,
+          kPrimaryMode      => true,
           kNumInterconnect  => 1,
+          kFastClkFreq      => 500.0,
           enDebug           => false
         )
       port map
         (
           -- System --------------------------------------------------------
-          rst               => laccp_reset(i),
+          rst               => laccp_reset(i) or miku_fanout_reset,
           clk               => clk_slow,
 
           -- User Interface ------------------------------------------------
           isReadyForDaq     => is_ready_for_daq(i),
-          laccpPulsesIn     => (others => '0'),
-          laccpPulsesOut    => laccp_pulse_out,
-          pulseInRejected   => open,
+          laccpPulsesIn     => laccp_pulse_in(i),
+          laccpPulsesOut    => open,
+          pulseInRejected   => pulse_rejected(i),
 
           -- RLIGP --
           addrMyLink        => sitcp_ip_addr(0),
@@ -799,31 +1004,34 @@ architecture Behavioral of toplevel is
           idelayTapOut      => open,
           serdesLantencyOut => open,
 
-          hbuIsSyncedIn     => hbu_is_synchronized,
-          syncPulseIn       => '0',
-          syncPulseOut      => sync_pulse_out,
+          hbuIsSyncedIn     => '0',
+          syncPulseIn       => heartbeat_signal,
+          syncPulseOut      => open,
 
-          upstreamOffset    => (others => '0'),
-          validOffset       => valid_hbc_offset,
-          hbcOffset         => hbc_offset,
-          fineOffset        => laccp_fine_offset,
-          fineOffsetLocal   => local_fine_offset,
+          upstreamOffset    => laccp_fine_offset,
+          validOffset       => open,
+          hbcOffset         => open,
+          fineOffset        => open,
+          fineOffsetLocal   => open,
 
           -- LACCP Bus Port ------------------------------------------------
           -- Intra-port--
-          isReadyIntraIn    => is_ready_laccp_intra,
-          dataIntraIn       => data_laccp_intra_in,
-          validIntraIn      => valid_laccp_intra_in,
-          dataIntraOut      => data_laccp_intra_out,
-          validIntraOut     => valid_laccp_intra_out,
+          isReadyIntraIn    => prim_is_ready_laccp_intra,
+          dataIntraIn       => prim_data_laccp_intra_in,
+          validIntraIn      => prim_valid_laccp_intra_in,
+          dataIntraOut      => prim_data_laccp_intra_out,
+          validIntraOut     => prim_valid_laccp_intra_out,
 
           -- Interconnect --
-          isReadyInterIn    => (others => '0'),
-          existInterOut     => open,
-          dataInterIn       => (others => (others => '0')),
-          validInterIn      => (others => '0'),
-          dataInterOut      => open,
-          validInterOut     => open,
+          isReadyInterIn    => (0 => is_ready_inter_up(i), others => '0'),
+          existInterOut(0)  => is_ready_inter_down(i),
+          existInterOut(kMaxNumInterconnect-1 downto 1)  => open,
+          dataInterIn       => (0 => data_inter_out(i), others => (others => '0')),
+          validInterIn      => (0 => valid_inter_out(i), others => '0'),
+          dataInterOut(0)   => data_inter_in(i),
+          dataInterOut(kMaxNumInterconnect-1 downto 1)   => open,
+          validInterOut(0)  => valid_inter_in(i),
+          validInterOut(kMaxNumInterconnect-1 downto 1)  => open,
 
           -- MIKUMARI-Link -------------------------------------------------
           mikuLinkUpIn      => mikumari_link_up(i),
@@ -852,7 +1060,9 @@ architecture Behavioral of toplevel is
         );
   end generate;
 
-  --
+  ----------------------------------------------------------------------------------------------
+
+
   --u_sync_nim1 : entity mylib.synchronizer port map(clk_slow, NIM_IN(1), frame_ctrl_gate);
   frame_ctrl_gate <= '0';
   hbu_reset       <= system_reset when(dip_sw(kStandAlone.Index) = '1') else laccp_reset(0);
@@ -899,6 +1109,46 @@ architecture Behavioral of toplevel is
         isReadyOut        => is_ready_laccp_intra(GetExtIntraIndex(kPortHBU))
 
       );
+
+  -- Primary-HeartBeat Unit -- Todo: Just paste -> Need to modify
+  hbu_prim_reset  <= '1' when(dip_sw(kStandAlone.Index) = '0') else system_reset;
+
+    u_HBU_Prim : entity mylib.PrimaryHeartBeatUnit
+      generic map
+        (
+          enDebug           => false
+        )
+      port map
+        (
+          -- System --
+          rst               => hbu_prim_reset,
+          primaryRst        => '0',
+          clk               => clk_slow,
+
+          -- Sync I/F --
+
+          -- HeartBeat I/F --
+          heartbeatOut      => heartbeat_signal_prim,
+          heartbeatCount    => heartbeat_count_prim,
+          hbfNumber         => hbf_number_prim,
+
+          hbfFlagsIn        => frame_flag_in,
+          frameFlags        => frame_flag_out_pri,
+          clkDiv16          => clk_sys_div16_prim,
+
+          -- DAQ I/F --
+          hbfCtrlGateIn     => frame_ctrl_gate,
+          forceOn           => '0',
+          frameState        => hbf_state_prim,
+
+          -- LACCP Bus --
+          dataBusIn         => prim_data_laccp_intra_out(GetExtIntraIndex(kPortHBU)),
+          validBusIn        => prim_valid_laccp_intra_out(GetExtIntraIndex(kPortHBU)),
+          dataBusOut        => prim_data_laccp_intra_in(GetExtIntraIndex(kPortHBU)),
+          validBusOut       => prim_valid_laccp_intra_in(GetExtIntraIndex(kPortHBU)),
+          isReadyOut        => prim_is_ready_laccp_intra(GetExtIntraIndex(kPortHBU))
+        );
+
 
   -- MIKUMARI utility ---------------------------------------------------------------------
   u_MUTIL : entity mylib.MikumariUtil

@@ -42,16 +42,16 @@ set_property PACKAGE_PIN AB10 [get_ports MIKUMARI_RXN]
 set_property PACKAGE_PIN AA13 [get_ports MIKUMARI_TXP]
 set_property PACKAGE_PIN AA12 [get_ports MIKUMARI_TXN]
 
-# Remaining pins for MIKUMARI
-# set_property PACKAGE_PIN Y15  [get_ports MIKUMARI_RXP1]
-# set_property PACKAGE_PIN Y16  [get_ports MIKUMARI_RXN1]
-# set_property PACKAGE_PIN AB15 [get_ports MIKUMARI_TXP1]
-# set_property PACKAGE_PIN AB14 [get_ports MIKUMARI_TXN1]
+# Mikumari Daisy Chain
+set_property PACKAGE_PIN Y15  [get_ports CDCM_RXP[0]]
+set_property PACKAGE_PIN Y16  [get_ports CDCM_RXN[0]]
+set_property PACKAGE_PIN AB15 [get_ports CDCM_TXP[0]]
+set_property PACKAGE_PIN AB14 [get_ports CDCM_TXN[0]]
 
-# set_property PACKAGE_PIN AA19 [get_ports MIKUMARI_RXP0]
-# set_property PACKAGE_PIN AA20 [get_ports MIKUMARI_RXN0]
-# set_property PACKAGE_PIN AA18 [get_ports MIKUMARI_TXP0]
-# set_property PACKAGE_PIN AA17 [get_ports MIKUMARI_TXN0]
+#set_property PACKAGE_PIN AA19 [get_ports CDCM_RXP[1]]
+#set_property PACKAGE_PIN AA20 [get_ports CDCM_RXN[1]]
+#set_property PACKAGE_PIN AA18 [get_ports CDCM_TXP[1]]
+#set_property PACKAGE_PIN AA17 [get_ports CDCM_TXN[1]]
 
 # EEPROM ---------------------------------------------------------------
 set_property PACKAGE_PIN D15 [get_ports EEP_CS]
@@ -362,6 +362,11 @@ set_property IOB TRUE [get_ports FCSB]
 set_property IOSTANDARD LVDS [get_ports MIKUMARI_TXP]
 set_property IOSTANDARD LVDS [get_ports MIKUMARI_RXP]
 set_property DIFF_TERM TRUE [get_ports MIKUMARI_RXP]
+
+# Mikumari Daisy Chain
+set_property IOSTANDARD LVDS [get_ports CDCM_RXP[*]]
+set_property IOSTANDARD LVDS [get_ports CDCM_TXP[*]]
+set_property DIFF_TERM TRUE [get_ports CDCM_RXP[*]]
 
 # EEPROM ---------------------------------------------------------------
 set_property IOSTANDARD LVCMOS33 [get_ports EEP_CS]
