@@ -48,10 +48,10 @@ set_property PACKAGE_PIN Y16  [get_ports CDCM_RXN[0]]
 set_property PACKAGE_PIN AB15 [get_ports CDCM_TXP[0]]
 set_property PACKAGE_PIN AB14 [get_ports CDCM_TXN[0]]
 
-#set_property PACKAGE_PIN AA19 [get_ports CDCM_RXP[1]]
-#set_property PACKAGE_PIN AA20 [get_ports CDCM_RXN[1]]
-#set_property PACKAGE_PIN AA18 [get_ports CDCM_TXP[1]]
-#set_property PACKAGE_PIN AA17 [get_ports CDCM_TXN[1]]
+set_property PACKAGE_PIN AA19 [get_ports CDCM_RXP[1]]
+set_property PACKAGE_PIN AA20 [get_ports CDCM_RXN[1]]
+set_property PACKAGE_PIN AA18 [get_ports CDCM_TXP[1]]
+set_property PACKAGE_PIN AA17 [get_ports CDCM_TXN[1]]
 
 # EEPROM ---------------------------------------------------------------
 set_property PACKAGE_PIN D15 [get_ports EEP_CS]
