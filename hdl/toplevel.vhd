@@ -138,8 +138,6 @@ architecture Behavioral of toplevel is
   signal pwr_on_reset : std_logic;
   signal system_reset : std_logic;
   signal user_reset   : std_logic;
-  signal hbu_reset    : std_logic;
-  signal hbu_prim_reset : std_logic;
 
   signal mii_reset    : std_logic;
   signal emergency_reset  : std_logic_vector(kNumPHY-1 downto 0);
@@ -154,12 +152,23 @@ architecture Behavioral of toplevel is
   signal sync_nim_in      : std_logic_vector(NIM_IN'range);
   signal tmp_nim_out      : std_logic_vector(NIM_OUT'range);
 
-  signal local_frame_flag    : std_logic_vector(kWidthFrameFlag-1 downto 0);
+    -- Impl --
+    --Todo: Check---------------------------------------------
+  signal local_scr_reset    : std_logic;
+  signal scr_rst_in         : std_logic;
+  signal led_hbf_state      : std_logic; -- Not used in MikuHub
+  signal idelayctrl_ready   : std_logic_vector(4 downto 0); --Todo : Chceck
+  signal idelay_reset       : std_logic;
+  signal local_trigger_in   : std_logic;
+  signal trigger_in         : std_logic;
+  -- Below is correctly connencted
+  signal hbu_reset          : std_logic;
+  signal hbu_prim_reset     : std_logic;
+  signal local_frame_flag    : std_logic_vector(kWidthFrameFlag-1 downto 0); -- = frame_flag_in
   signal frame_flag_out      : std_logic_vector(kWidthFrameFlag-1 downto 0);
   signal frame_flag_out_pri  : std_logic_vector(kWidthFrameFlag-1 downto 0);
   signal frame_flag_out_scnd : std_logic_vector(kWidthFrameFlag-1 downto 0);
-
-  signal local_trigger_in : std_logic;
+  ----------------------------------------------------------------
 
   -- Hit Input definition -- 2026/02/13 Change from 96 to 64
   constant kNumInput    : integer:= 64; 
@@ -200,7 +209,7 @@ architecture Behavioral of toplevel is
   constant kIdMikuSec         : integer:= 2;
   constant kIdMikuCDD0        : integer:= 0;
 
-  constant kNumCdcm           : integer:= 2; -- Todo: How many need?
+  constant kNumCdcm           : integer:= 2; 
 
   signal miku_txp, miku_txn, miku_rxp, miku_rxn   : std_logic_vector(kNumMikumari-1 downto 0);
 
@@ -220,6 +229,8 @@ architecture Behavioral of toplevel is
   signal tap_value_out        : TapArrayType(kNumMikumari-1 downto 0);
   signal bitslip_num_out      : BitslipArrayType(kNumMikumari-1 downto 0);
   signal serdes_offset        : SerdesOfsArrayType(kNumMikumari-1 downto 0);
+
+  --attribute mark_debug of power_on_init : signal is kEnDebugTop; -- Todo: For debugging
 
   -- Mikumari --
   type MikuDataArray is array(kNumMikumari-1 downto 0) of std_logic_vector(7 downto 0);
@@ -323,7 +334,7 @@ architecture Behavioral of toplevel is
   constant kMsbScr      : integer:= kNumSysInput+kNumInput-1;
   signal scr_en_in      : std_logic_vector(kMsbScr downto 0):= (others => '0');
   signal scr_gate       : std_logic_vector(kNumScrGate-1 downto 0);
-  --signal global_scr_reset : std_logic; Todo: Check
+  signal global_scr_reset : std_logic; --Todo: Check
 
   -- Streaming TDC ------------------------------------------------------------
   -- scaler --
@@ -938,7 +949,7 @@ architecture Behavioral of toplevel is
         kCdcmModWidth    => 8,
         -- CDCM-TX --
         kIoStandardTx    => "LVDS",
-        kTxPolarity      => False,
+        kTxPolarity      => True, --Todo: Changed 2026/07/14
         -- CDCM-RX --
         genIDELAYCTRL    => FALSE,
         kDiffTerm        => TRUE,
@@ -1153,7 +1164,7 @@ architecture Behavioral of toplevel is
         -- DAQ I/F --
         hbfCtrlGateIn     => frame_ctrl_gate,
         forceOn           => '1',
-        frameState        => hbf_state,--
+        frameState        => hbf_state_secnd,
 
         hbfFlagsIn        => local_frame_flag,
         frameFlags        => frame_flag_out_scnd,
@@ -1389,10 +1400,13 @@ architecture Behavioral of toplevel is
 
 
   -- IOM ------------------------------------------------------------------------
+  u_edge_scr : entity mylib.EdgeDetector port map(clk_slow, scr_rst_in, local_scr_reset);
+  u_edge_trg : entity mylib.EdgeDetector port map(clk_slow, trigger_in, local_trigger_in);
+
   local_frame_flag(0)   <= dip_sw(kStandAlone.Index) and intsig_from_iom(0);
   local_frame_flag(1)   <= dip_sw(kStandAlone.Index) and intsig_from_iom(1);
-  local_trigger_in      <= dip_sw(kStandAlone.Index) and intsig_from_iom(2);
-  --scr_rst_in            <= intsig_from_iom(3); Todo: Check whether need or not
+  trigger_in      <= dip_sw(kStandAlone.Index) and intsig_from_iom(2); -- Previously "local_trigger_in"
+  scr_rst_in            <= intsig_from_iom(3);
 
   intsig_to_iom(0)      <= heartbeat_signal;
   intsig_to_iom(1)      <= tcp_isActive(0);
