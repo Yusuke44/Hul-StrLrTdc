@@ -157,7 +157,7 @@ architecture Behavioral of toplevel is
   signal local_scr_reset    : std_logic;
   signal scr_rst_in         : std_logic;
   signal led_hbf_state      : std_logic; -- Not used in MikuHub
-  signal idelayctrl_ready   : std_logic_vector(4 downto 0); --Todo : Chceck
+  signal idelayctrl_ready   : std_logic_vector(1 downto 0);
   signal idelay_reset       : std_logic;
   signal local_trigger_in   : std_logic;
   signal trigger_in         : std_logic;
@@ -205,6 +205,8 @@ architecture Behavioral of toplevel is
   --   end case;
   -- end function;
 
+  attribute IODELAY_GROUP : string;
+
   constant kNumMikumari       : integer:= 3;
   constant kIdMikuSec         : integer:= 2;
   constant kIdMikuCDD0        : integer:= 0;
@@ -230,7 +232,7 @@ architecture Behavioral of toplevel is
   signal bitslip_num_out      : BitslipArrayType(kNumMikumari-1 downto 0);
   signal serdes_offset        : SerdesOfsArrayType(kNumMikumari-1 downto 0);
 
-  --attribute mark_debug of power_on_init : signal is kEnDebugTop; -- Todo: For debugging
+  --attribute mark_debug of power_on_init : signal is kEnDebugTop;
 
   -- Mikumari --
   type MikuDataArray is array(kNumMikumari-1 downto 0) of std_logic_vector(7 downto 0);
@@ -334,7 +336,7 @@ architecture Behavioral of toplevel is
   constant kMsbScr      : integer:= kNumSysInput+kNumInput-1;
   signal scr_en_in      : std_logic_vector(kMsbScr downto 0):= (others => '0');
   signal scr_gate       : std_logic_vector(kNumScrGate-1 downto 0);
-  signal global_scr_reset : std_logic; --Todo: Check
+  signal global_scr_reset : std_logic;
 
   -- Streaming TDC ------------------------------------------------------------
   -- scaler --
@@ -611,6 +613,18 @@ architecture Behavioral of toplevel is
   signal mmcm_cdcm_reset      : std_logic;
   --signal pll_is_locked        : std_logic;
 
+  --Todo : After debugging, delete
+  -- COMPONENT ila_0
+
+  --   PORT (
+	--     clk : IN STD_LOGIC;
+	--     probe0 : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+  --     probe1 : IN STD_LOGIC_VECTOR(15 downto 0);
+  --     probe2 : IN STD_LOGIC;
+  --     probe3 : IN STD_LOGIC
+  --   );
+  -- END COMPONENT  ;
+
 
  begin
   -- ===================================================================================
@@ -622,8 +636,7 @@ architecture Behavioral of toplevel is
     generic map(kNumDelay => 128)
     port map(clk_sys, USR_RSTB, delayed_usr_rstb);
 
-  --clk_miku_locked <= CDCE_LOCK;
-  clk_miku_locked <= mmcm_cdcm_locked;
+  clk_miku_locked <= mmcm_cdcm_locked and and_reduce(idelayctrl_ready);
   clk_locked      <= clk_sys_locked and clk_miku_locked;
 
   --c6c_reset       <= (not clk_sys_locked) or (not delayed_usr_rstb);
@@ -683,9 +696,10 @@ architecture Behavioral of toplevel is
   dip_sw(7)   <= DIP(7);
   dip_sw(8)   <= DIP(8);
 
-  -- 2026/02/28 Temporary comment out for debug
   --LED        <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq(lIdMikuSec) & daq_is_runnig; --StrLrTdc
-  LED         <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & daq_is_runnig; --MikumriClockHub
+  --LED         <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & daq_is_runnig; --MikumriClockHub
+  LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & laccp_reset(kIdMikuSec);
+  --LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & (laccp_reset(0) or miku_fanout_reset);
 
   -- Mezzanine connection --------------------------------------------------------------
   MIKUMARI_TXP  <= miku_txp(kIdMikuSec);
@@ -736,6 +750,18 @@ architecture Behavioral of toplevel is
   u_KeepInit : entity mylib.RstDelayTimer
     port map(system_reset, X"0FFFFFFF", clk_slow, open, power_on_init );
 
+
+  gen_idleayctrl : for i in 0 to idelayctrl_ready'length-1 generate
+    attribute IODELAY_GROUP of u_IDELAYCTRL_inst : label is "idelay_" & integer'image(i+1);
+  begin
+    u_IDELAYCTRL_inst : IDELAYCTRL
+      port map (
+        RDY     => idelayctrl_ready(i),
+        REFCLK  => clk_gbe,
+        RST     => pwr_on_reset
+      );
+  end generate;
+
   -- Secondary Links ------------------------------------------------------------
   --gen_mikumari : for i in 0 to kNumMikumari-1 generate
   laccp_reset(kIdMikuSec) <= system_reset or (not mikumari_link_up(kIdMikuSec));
@@ -749,7 +775,7 @@ architecture Behavioral of toplevel is
       kIoStandardTx    => "LVDS",
       kTxPolarity      => FALSE, 
       -- CDCM-RX --
-      genIDELAYCTRL    => TRUE, --Todo Check whether TRUE or FALSE
+      genIDELAYCTRL    => False, --Todo Check whether TRUE or FALSE
       kDiffTerm        => TRUE,
       kIoStandardRx    => "LVDS",
       kRxPolarity      => FALSE, --TODO: Need to check
@@ -771,8 +797,8 @@ architecture Behavioral of toplevel is
     )
     port map(
       -- System ports -----------------------------------------------------------
-      rst           => system_reset,
-      -- rst           => system_reset or DIP(kStandAlone.Index),
+      -- rst           => system_reset,
+      rst           => system_reset or DIP(kStandAlone.Index),
       pwrOnRst      => pwr_on_reset,
       clkSer        => clk_fast,
       clkPar        => clk_slow,
@@ -875,14 +901,14 @@ architecture Behavioral of toplevel is
         fineOffsetLocal   => local_fine_offset,
 
         -- LACCP Bus Port ------------------------------------------------
-        -- Intra-port--
+        -- Intra-port-- Connected with HBU
         isReadyIntraIn    => is_ready_laccp_intra,
         dataIntraIn       => data_laccp_intra_in,
         validIntraIn      => valid_laccp_intra_in,
         dataIntraOut      => data_laccp_intra_out,
         validIntraOut     => valid_laccp_intra_out,
 
-        -- Interconnect -- Todo: Check!
+        -- Interconnect --
         --isReadyInterIn    => (others => '0'),
         --existInterOut     => open,
         --dataInterIn       => (others => (others => '0')),
@@ -890,7 +916,7 @@ architecture Behavioral of toplevel is
         --dataInterOut      => open,
         --validInterOut     => open,
 
-        -- Interconnect -- Copy from ClkHub --
+        -- Interconnect -- Copy from ClkHub -- connected with each primary LaccpMainBlock
         isReadyInterIn    => (kPosCdd'range => is_ready_inter_down(kPosCdd'range), others => '0'),
         existInterOut     => is_ready_inter_up,
         dataInterIn       => (kPosCdd'range => data_inter_in(kPosCdd'range), others => (others => '0')),
@@ -926,15 +952,14 @@ architecture Behavioral of toplevel is
   --end generate;
 
   -- Primary Links -----------------------------------------------------------------------------
-  --Todo: Just paste -> Need to modify
   miku_fanout_reset   <= power_on_init when(DIP(kStandAlone.Index) = '1') else (not is_ready_for_daq(kIdMikuSec));
 
   gen_mikumari : for i in kIdMikuCDD0 to kNumMikumari-2 generate
     laccp_reset(i) <= system_reset or (not mikumari_link_up(i));
 
     laccp_pulse_in(i)(kDownPulseTrigger)   <= local_trigger_in or laccp_pulse_out(kDownPulseTrigger);
-    --laccp_pulse_in(i)(kDownPulseCntRst)    <= laccp_pulse_out(kDownPulseCntRst) or global_scr_reset or local_scr_reset; Todo: Check
-    laccp_pulse_in(i)(kDownPulseCntRst)    <= laccp_pulse_out(kDownPulseCntRst);
+    laccp_pulse_in(i)(kDownPulseCntRst)    <= laccp_pulse_out(kDownPulseCntRst) or global_scr_reset or local_scr_reset;
+    --laccp_pulse_in(i)(kDownPulseCntRst)    <= laccp_pulse_out(kDownPulseCntRst);
     laccp_pulse_in(i)(kDownPulseSysRst)    <= rst_over_miku(i);
     laccp_pulse_in(i)(kDownPulseRSV3)      <= laccp_pulse_out(kDownPulseRSV3);
     laccp_pulse_in(i)(kDownPulseRSV4)      <= laccp_pulse_out(kDownPulseRSV4);
@@ -955,8 +980,7 @@ architecture Behavioral of toplevel is
         kDiffTerm        => TRUE,
         kIoStandardRx    => "LVDS",
         kRxPolarity      => False,
-        --kIoDelayGroup    => GetIoGroup(kPcbVersion, i), --Todo: Need to check
-        kIoDelayGroup    => "idelay_1", --Todo: Temporary set same as slave's one
+        kIoDelayGroup    => "idelay_2",
         kFixIdelayTap    => FALSE,
         kFreqFastClk     => 500.0,
         kFreqRefClk      => 200.0,
@@ -1178,7 +1202,7 @@ architecture Behavioral of toplevel is
 
       );
 
-  -- Primary-HeartBeat Unit -- Todo: Just paste -> Need to modify
+  -- Primary-HeartBeat Unit -- Todo: Just paste -> Check
   hbu_prim_reset  <= '1' when(dip_sw(kStandAlone.Index) = '0') else system_reset;
 
     u_HBU_Prim : entity mylib.PrimaryHeartBeatUnit
@@ -1237,7 +1261,7 @@ architecture Behavioral of toplevel is
       bitslipNumIn        => bitslip_num_out,
       cbtInitOut          => cbt_init_from_mutil,
       tapValueOut         => open,
-      rstOverMikuOut      => rst_over_miku, --Todo: Check
+      rstOverMikuOut      => rst_over_miku,
 
       -- MIKUMARI Link ports --
       mikuLinkUp          => mikumari_link_up,
@@ -1248,7 +1272,7 @@ architecture Behavioral of toplevel is
       hbcOffset           => hbc_offset,
       localFineOffset     => std_logic_vector(local_fine_offset),
       laccpFineOffset     => std_logic_vector(laccp_fine_offset),
-      hbfState            => frame_ctrl_gate, -- Todo: Is it fine?
+      hbfState            => frame_ctrl_gate,
 
       -- Local bus --
       addrLocalBus        => addr_LocalBus,
@@ -1272,7 +1296,7 @@ architecture Behavioral of toplevel is
   --scr_en_in(kMsbScr - kIndexTrgReq)         <= '0';
   --scr_en_in(kMsbScr - kIndexTrgRejected)    <= '0';
 
-  -- Todo: Just Paste ClkHub's -> Check!
+  -- Todo: Just copy from MikuHub -> Check!
   scr_en_in(kMsbScr - kIndexTrgReq)         <= laccp_pulse_in(kIdMikuCDD0)(kDownPulseTrigger);
   scr_en_in(kMsbScr - kIndexTrgRejected)    <= or_reduce(pulse_rejected);
 
@@ -1307,7 +1331,7 @@ architecture Behavioral of toplevel is
       hbCount             => (heartbeat_count'range => heartbeat_count, others => '0'),
       hbfNum              => (hbf_number'range => hbf_number, others => '0'),
       scrEnIn             => scr_en_in,
-      scrRstOut           => open, --Todo: Check whether need to connect "global_scr_reset"
+      scrRstOut           => global_scr_reset,
 
       scrgates            => scr_gate,
 
@@ -1403,16 +1427,18 @@ architecture Behavioral of toplevel is
   u_edge_scr : entity mylib.EdgeDetector port map(clk_slow, scr_rst_in, local_scr_reset);
   u_edge_trg : entity mylib.EdgeDetector port map(clk_slow, trigger_in, local_trigger_in);
 
-  local_frame_flag(0)   <= dip_sw(kStandAlone.Index) and intsig_from_iom(0);
-  local_frame_flag(1)   <= dip_sw(kStandAlone.Index) and intsig_from_iom(1);
-  trigger_in      <= dip_sw(kStandAlone.Index) and intsig_from_iom(2); -- Previously "local_trigger_in"
+  local_frame_flag(0)   <= intsig_from_iom(0);
+  local_frame_flag(1)   <= intsig_from_iom(1);
+  trigger_in            <= intsig_from_iom(2);
   scr_rst_in            <= intsig_from_iom(3);
 
   intsig_to_iom(0)      <= heartbeat_signal;
   intsig_to_iom(1)      <= tcp_isActive(0);
   intsig_to_iom(2)      <= laccp_pulse_out(kDownPulseTrigger);
-  intsig_to_iom(3)      <= frame_flag_out(0);
-  intsig_to_iom(4)      <= frame_flag_out(1);
+  -- intsig_to_iom(3)      <= frame_flag_out(0);
+  -- intsig_to_iom(4)      <= frame_flag_out(1);
+  intsig_to_iom(3)      <= mod_clk;
+  intsig_to_iom(4)      <= gmod_clk;
   intsig_to_iom(5)      <= clk_sys_div16;
   intsig_to_iom(6)      <= clk_slow;
   intsig_to_iom(7)      <= '1';
@@ -1575,8 +1601,14 @@ architecture Behavioral of toplevel is
   PHY_GTX_CLK <= clk_sys; -- 2026/01/28
   PHY_HPD     <= '0';
 
+  --Todo : Check
+  -- LrTDC
   u_SiTCPRst : entity mylib.ResetGen
     port map(system_reset or rst_from_miku, clk_sys, sitcp_reset);
+
+  -- MikuHub
+  -- u_SiTCPRst : entity mylib.ResetGen
+  --   port map(pwr_on_reset or rst_from_miku, clk_sys, sitcp_reset);
 
   gen_SiTCP : for i in 0 to kNumPHY-1 generate
 
@@ -1883,4 +1915,14 @@ architecture Behavioral of toplevel is
 --       IB => CLK_FASTN -- Diff_n buffer input (connect directly to top-level port)
 --       );
 --
+
+--Todo : After debugging, delete
+-- u_ila_0 : ila_0
+--   PORT MAP (
+-- 	  clk => clk_slow,
+-- 	  probe0 => std_logic_vector(local_fine_offset),
+--     probe1 => std_logic_vector(laccp_fine_offset),
+--     probe2 => is_ready_for_daq(kIdMikuSec),
+--     probe3 => laccp_reset(kIdMikuSec)
+-- );
 end Behavioral;
