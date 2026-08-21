@@ -684,9 +684,6 @@ architecture Behavioral of toplevel is
 --    end if;
 --  end process;
 
---  tmp_nim_out(1)  <= laccp_pulse_out(kDownPulseTrigger) when(dip_sw(kTriggerOut.Index) = '1') else heartbeat_signal;
---  tmp_nim_out(2)  <= tcp_isActive(0);
-
   dip_sw(1)   <= DIP(1);
   dip_sw(2)   <= DIP(2);
   dip_sw(3)   <= DIP(3);
@@ -697,8 +694,8 @@ architecture Behavioral of toplevel is
   dip_sw(8)   <= DIP(8);
 
   --LED        <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq(lIdMikuSec) & daq_is_runnig; --StrLrTdc
-  --LED         <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & daq_is_runnig; --MikumriClockHub
-  LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & laccp_reset(kIdMikuSec);
+  LED         <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & daq_is_runnig; --MikumriClockHub
+  --LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & laccp_reset(kIdMikuSec);
   --LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & (laccp_reset(0) or miku_fanout_reset);
 
   -- Mezzanine connection --------------------------------------------------------------
@@ -775,7 +772,7 @@ architecture Behavioral of toplevel is
       kIoStandardTx    => "LVDS",
       kTxPolarity      => FALSE, 
       -- CDCM-RX --
-      genIDELAYCTRL    => False, --Todo Check whether TRUE or FALSE
+      genIDELAYCTRL    => False,
       kDiffTerm        => TRUE,
       kIoStandardRx    => "LVDS",
       kRxPolarity      => FALSE, --TODO: Need to check
@@ -788,12 +785,13 @@ architecture Behavioral of toplevel is
       -- Master/Slave
       kCbtMode         => "Slave",
       -- DEBUG --
-      enDebugCBT       => FALSE, -- For debugging : TRUE
+      enDebugCBT       => FALSE,
 
       -- MIKUMARI generic --------------------------------------------------------
       enScrambler      => TRUE,
       kHighPrecision   => FALSE
-      -- DEBUG --        enDebugMikumari  => FALSE
+      -- DEBUG --        
+      --enDebugMikumari  => FALSE
     )
     port map(
       -- System ports -----------------------------------------------------------
@@ -1925,4 +1923,6 @@ architecture Behavioral of toplevel is
 --     probe2 => is_ready_for_daq(kIdMikuSec),
 --     probe3 => laccp_reset(kIdMikuSec)
 -- );
+
+
 end Behavioral;
