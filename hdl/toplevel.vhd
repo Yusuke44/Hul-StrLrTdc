@@ -695,8 +695,7 @@ architecture Behavioral of toplevel is
 
   --LED        <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq(lIdMikuSec) & daq_is_runnig; --StrLrTdc
   LED         <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & daq_is_runnig; --MikumriClockHub
-  --LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & laccp_reset(kIdMikuSec);
-  --LED <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & (laccp_reset(0) or miku_fanout_reset);
+
 
   -- Mezzanine connection --------------------------------------------------------------
   MIKUMARI_TXP  <= miku_txp(kIdMikuSec);
