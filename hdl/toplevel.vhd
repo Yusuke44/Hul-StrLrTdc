@@ -1432,10 +1432,10 @@ architecture Behavioral of toplevel is
   intsig_to_iom(0)      <= heartbeat_signal;
   intsig_to_iom(1)      <= tcp_isActive(0);
   intsig_to_iom(2)      <= laccp_pulse_out(kDownPulseTrigger);
-  -- intsig_to_iom(3)      <= frame_flag_out(0);
-  -- intsig_to_iom(4)      <= frame_flag_out(1);
-  intsig_to_iom(3)      <= mod_clk;
-  intsig_to_iom(4)      <= gmod_clk;
+  intsig_to_iom(3)      <= frame_flag_out(0);
+  intsig_to_iom(4)      <= frame_flag_out(1);
+  --intsig_to_iom(3)      <= mod_clk;
+  --intsig_to_iom(4)      <= gmod_clk;
   intsig_to_iom(5)      <= clk_sys_div16;
   intsig_to_iom(6)      <= clk_slow;
   intsig_to_iom(7)      <= '1';
