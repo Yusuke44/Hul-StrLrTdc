@@ -139,7 +139,7 @@ architecture Behavioral of toplevel is
   signal system_reset : std_logic;
   signal user_reset   : std_logic;
 
-  signal mii_reset    : std_logic;
+  -- signal mii_reset    : std_logic;
   signal emergency_reset  : std_logic_vector(kNumPHY-1 downto 0);
 
   signal bct_reset    : std_logic;
@@ -151,6 +151,9 @@ architecture Behavioral of toplevel is
 
   signal sync_nim_in      : std_logic_vector(NIM_IN'range);
   signal tmp_nim_out      : std_logic_vector(NIM_OUT'range);
+
+  -- Pipeline register for NIM output
+  -- signal reg_tmp_nim_out      : std_logic_vector(NIM_OUT'range);
 
     -- Impl --
     --Todo: Check---------------------------------------------
@@ -544,20 +547,20 @@ architecture Behavioral of toplevel is
   signal mmcm_reset       : std_logic_vector(kNumPHY-1 downto 0);
   signal mmcm_locked      : std_logic;
 
-  signal gt0_qplloutclk, gt0_qplloutrefclk  : std_logic;
-  signal gtrefclk_i, gtrefclk_bufg  : std_logic;
-  signal txout_clk, rxout_clk       : std_logic_vector(kNumPHY-1 downto 0);
-  signal user_clk, user_clk2, rxuser_clk, rxuser_clk2   : std_logic;
+  -- signal gt0_qplloutclk, gt0_qplloutrefclk  : std_logic;
+  -- signal gtrefclk_i, gtrefclk_bufg  : std_logic;
+  -- signal txout_clk, rxout_clk       : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal user_clk, user_clk2, rxuser_clk, rxuser_clk2   : std_logic;
 
-  signal eth_tx_clk       : std_logic_vector(kNumPHY-1 downto 0);
-  signal eth_tx_en        : std_logic_vector(kNumPHY-1 downto 0);
-  signal eth_tx_er        : std_logic_vector(kNumPHY-1 downto 0);
-  signal eth_tx_d         : typeTcpData;
+  -- signal eth_tx_clk       : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal eth_tx_en        : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal eth_tx_er        : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal eth_tx_d         : typeTcpData;
 
-  signal eth_rx_clk       : std_logic_vector(kNumPHY-1 downto 0);
-  signal eth_rx_dv        : std_logic_vector(kNumPHY-1 downto 0);
-  signal eth_rx_er        : std_logic_vector(kNumPHY-1 downto 0);
-  signal eth_rx_d         : typeTcpData;
+  -- signal eth_rx_clk       : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal eth_rx_dv        : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal eth_rx_er        : std_logic_vector(kNumPHY-1 downto 0);
+  -- signal eth_rx_d         : typeTcpData;
 
 
   -- Clock ---------------------------------------------------------------------------
@@ -613,19 +616,6 @@ architecture Behavioral of toplevel is
   signal mmcm_cdcm_reset      : std_logic;
   --signal pll_is_locked        : std_logic;
 
-  --Todo : After debugging, delete
-  -- COMPONENT ila_0
-
-  --   PORT (
-	--     clk : IN STD_LOGIC;
-	--     probe0 : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-  --     probe1 : IN STD_LOGIC_VECTOR(15 downto 0);
-  --     probe2 : IN STD_LOGIC;
-  --     probe3 : IN STD_LOGIC
-  --   );
-  -- END COMPONENT  ;
-
-
  begin
   -- ===================================================================================
   -- body
@@ -675,6 +665,10 @@ architecture Behavioral of toplevel is
       D2 => tmp_nim_out(i),  -- 1-bit data input (negative edge)
       R => '0',    -- 1-bit reset input
       S => '0'     -- 1-bit set input
+
+      -- w/ Pipeline
+      -- D1 => reg_tmp_nim_out(i),  -- 1-bit data input (positive edge)
+      -- D2 => reg_tmp_nim_out(i),  -- 1-bit data input (negative edge)
     );
   end generate;
 --  u_nimo_buf : process(clk_slow)
@@ -1442,6 +1436,9 @@ architecture Behavioral of toplevel is
 
 
   u_IOM : entity mylib.IOManager
+    generic map(
+      kNumExtIO  => 4
+    )
     port map(
       rst	                => user_reset,
       clk	                => clk_slow,
@@ -1462,6 +1459,8 @@ architecture Behavioral of toplevel is
       weLocalBus          => we_LocalBus(kIOM.ID),
       readyLocalBus	      => ready_LocalBus(kIOM.ID)
       );
+
+    --  reg_tmp_nim_out <= tmp_nim_out;
 
   -- C6C -------------------------------------------------------------------------------
   --CDCE_PDB  <= '0';
@@ -1608,8 +1607,8 @@ architecture Behavioral of toplevel is
   --   port map(pwr_on_reset or rst_from_miku, clk_sys, sitcp_reset);
 
   gen_SiTCP : for i in 0 to kNumPHY-1 generate
-
-    eth_tx_clk(i)      <= eth_rx_clk(0);
+  
+  -- eth_tx_clk(i)      <= eth_rx_clk(0);
 
     u_SiTCP_Inst : WRAP_SiTCP_GMII_XC7K_32K
       port map
