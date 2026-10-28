@@ -390,7 +390,8 @@ if { $validate_required } {
 }
 
 # Create project
-create_project ${_xil_proj_name_} ./build -part xc7k160tffg676-2
+# create_project ${_xil_proj_name_} ./build -part xc7k160tffg676-2
+create_project ${_xil_proj_name_} ./build -part xc7k160tfbg676-1
 
 # Set the directory path for the new project
 set proj_dir [get_property directory [current_project]]
