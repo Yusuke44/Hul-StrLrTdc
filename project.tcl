@@ -407,7 +407,8 @@ set_property -name "enable_vhdl_2008" -value "1" -objects $obj
 set_property -name "ip_cache_permissions" -value "disable" -objects $obj
 set_property -name "ip_output_repo" -value "$proj_dir/${_xil_proj_name_}.cache/ip" -objects $obj
 set_property -name "mem.enable_memory_map_generation" -value "1" -objects $obj
-set_property -name "part" -value "xc7k160tffg676-2" -objects $obj
+# set_property -name "part" -value "xc7k160tffg676-2" -objects $obj
+set_property -name "part" -value "xc7k160tfbg676-1" -objects $obj
 set_property -name "revised_directory_structure" -value "1" -objects $obj
 set_property -name "sim.central_dir" -value "$proj_dir/${_xil_proj_name_}.ip_user_files" -objects $obj
 set_property -name "sim.ip.auto_export_scripts" -value "1" -objects $obj
@@ -1470,8 +1471,10 @@ set_property -name "file_type" -value "XDC" -objects $file_obj
 set_property -name "library" -value "mylib" -objects $file_obj
 
 # Set 'constrs_1' fileset properties
+# set obj [get_filesets constrs_1]
+# set_property -name "target_part" -value "xc7k160tffg676-2" -objects $obj
 set obj [get_filesets constrs_1]
-set_property -name "target_part" -value "xc7k160tffg676-2" -objects $obj
+set_property -name "target_part" -value " xc7k160tfbg676-1" -objects $obj
 
 # Create 'sim_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sim_1] ""]} {
@@ -1501,8 +1504,31 @@ catch {
 }
 
 # Create 'synth_1' run (if not found)
+# if {[string equal [get_runs -quiet synth_1] ""]} {
+#     create_run -name synth_1 -part xc7k160tffg676-2 -flow {Vivado Synthesis 2023} -strategy "Vivado Synthesis Defaults" -report_strategy {No Reports} -constrset constrs_1
+# } else {
+#   set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
+#   set_property flow "Vivado Synthesis 2023" [get_runs synth_1]
+# }
+# set obj [get_runs synth_1]
+# set_property set_report_strategy_name 1 $obj
+# set_property report_strategy {Vivado Synthesis Default Reports} $obj
+# set_property set_report_strategy_name 0 $obj
+# Create 'synth_1_synth_report_utilization_0' report (if not found)
+# if { [ string equal [get_report_configs -of_objects [get_runs synth_1] synth_1_synth_report_utilization_0] "" ] } {
+#   create_report_config -report_name synth_1_synth_report_utilization_0 -report_type report_utilization:1.0 -steps synth_design -runs synth_1
+# }
+# set obj [get_report_configs -of_objects [get_runs synth_1] synth_1_synth_report_utilization_0]
+# if { $obj != "" } {
+# }
+# set obj [get_runs synth_1]
+# set_property -name "part" -value "xc7k160tffg676-2" -objects $obj
+# set_property -name "auto_incremental_checkpoint" -value "1" -objects $obj
+# set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
+
+# For StrHUL
 if {[string equal [get_runs -quiet synth_1] ""]} {
-    create_run -name synth_1 -part xc7k160tffg676-2 -flow {Vivado Synthesis 2023} -strategy "Vivado Synthesis Defaults" -report_strategy {No Reports} -constrset constrs_1
+    create_run -name synth_1 -part xc7k160tfbg676-1 -flow {Vivado Synthesis 2023} -strategy "Vivado Synthesis Defaults" -report_strategy {No Reports} -constrset constrs_1
 } else {
   set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
   set_property flow "Vivado Synthesis 2023" [get_runs synth_1]
@@ -1517,10 +1543,9 @@ if { [ string equal [get_report_configs -of_objects [get_runs synth_1] synth_1_s
 }
 set obj [get_report_configs -of_objects [get_runs synth_1] synth_1_synth_report_utilization_0]
 if { $obj != "" } {
-
 }
 set obj [get_runs synth_1]
-set_property -name "part" -value "xc7k160tffg676-2" -objects $obj
+set_property -name "part" -value "xc7k160tfbg676-1" -objects $obj
 set_property -name "auto_incremental_checkpoint" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
 
@@ -1528,9 +1553,12 @@ set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
 current_run -synthesis [get_runs synth_1]
 
 # Create 'impl_1' run (if not found)
+# if {[string equal [get_runs -quiet impl_1] ""]} {
+#     create_run -name impl_1 -part xc7k160tffg676-2 -flow {Vivado Implementation 2023} -strategy "Vivado Implementation Defaults" -report_strategy {No Reports} -constrset constrs_1 -parent_run synth_1
+# } 
 if {[string equal [get_runs -quiet impl_1] ""]} {
-    create_run -name impl_1 -part xc7k160tffg676-2 -flow {Vivado Implementation 2023} -strategy "Vivado Implementation Defaults" -report_strategy {No Reports} -constrset constrs_1 -parent_run synth_1
-} else {
+    create_run -name impl_1 -part  xc7k160tfbg676-1 -flow {Vivado Implementation 2023} -strategy "Vivado Implementation Defaults" -report_strategy {No Reports} -constrset constrs_1 -parent_run synth_1
+}else {
   set_property strategy "Vivado Implementation Defaults" [get_runs impl_1]
   set_property flow "Vivado Implementation 2023" [get_runs impl_1]
 }
@@ -1743,7 +1771,8 @@ set_property -name "options.warn_on_violation" -value "1" -objects $obj
 
 }
 set obj [get_runs impl_1]
-set_property -name "part" -value "xc7k160tffg676-2" -objects $obj
+# set_property -name "part" -value "xc7k160tffg676-2" -objects $obj
+set_property -name "part" -value "xc7k160tfbg676-1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
