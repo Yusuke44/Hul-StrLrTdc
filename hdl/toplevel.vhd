@@ -10,7 +10,6 @@ library mylib;
 use mylib.defDCR.all;
 use mylib.defBCT.all;
 use mylib.defBusAddressMap.all;
---use mylib.defCDD.all;
 use mylib.defCDCM.all;
 use mylib.defMikumari.all;
 use mylib.defMikumariUtil.all;
@@ -64,21 +63,6 @@ entity toplevel is
     NIM_IN              : in std_logic_vector(4 downto 1);
     NIM_OUT             : out std_logic_vector(4 downto 1);
 
--- JItter cleaner -------------------------------------------------------
---    CDCE_PDB            : out std_logic;
---    CDCE_LOCK           : in std_logic;
---    CDCE_SCLK           : out std_logic;
---    CDCE_SO             : in std_logic;
---    CDCE_SI             : out std_logic;
---    CDCE_LE             : out std_logic;
---    CDCE_REFP           : out std_logic;
---    CDCE_REFN           : out std_logic;
---
---    CLK_FASTP           : in std_logic;
---    CLK_FASTN           : in std_logic;
---    CLK_SLOWP           : in std_logic;
---    CLK_SLOWN           : in std_logic;
---
 -- Main port ------------------------------------------------------------
 -- Up port --
     MAIN_IN_U           : in std_logic_vector(31 downto 0);
@@ -89,10 +73,6 @@ entity toplevel is
 -- Up slot -- 2026/02/13 Comment out
     -- MZN_UP              : in std_logic_vector(31 downto 0);
     -- MZN_UN              : in std_logic_vector(31 downto 0);
-
--- Dwon slot --
-    -- MZN_DP              : in std_logic_vector(31 downto 0);
-    -- MZN_DN              : in std_logic_vector(31 downto 0);
 
 -- DDR3 SDRAM -----------------------------------------------------------
 
@@ -131,7 +111,7 @@ architecture Behavioral of toplevel is
   constant kNumBitDIP   : integer:= 4;
   constant kNumNIM      : integer:= 4; 
   constant kNumPHY      : integer:= 1;
-  --constant kNumInputMZN : integer:= 32; 2026/02/13 Comment out
+  constant kNumInputMZN : integer:= 32;
 
   signal sitcp_reset  : std_logic;
   signal raw_pwr_on_reset : std_logic;
@@ -156,7 +136,6 @@ architecture Behavioral of toplevel is
   -- signal reg_tmp_nim_out      : std_logic_vector(NIM_OUT'range);
 
     -- Impl --
-    --Todo: Check---------------------------------------------
   signal local_scr_reset    : std_logic;
   signal scr_rst_in         : std_logic;
   signal led_hbf_state      : std_logic; -- Not used in MikuHub
@@ -164,7 +143,7 @@ architecture Behavioral of toplevel is
   signal idelay_reset       : std_logic;
   signal local_trigger_in   : std_logic;
   signal trigger_in         : std_logic;
-  -- Below is correctly connencted
+
   signal hbu_reset          : std_logic;
   signal hbu_prim_reset     : std_logic;
   signal local_frame_flag    : std_logic_vector(kWidthFrameFlag-1 downto 0); -- = frame_flag_in
@@ -174,7 +153,7 @@ architecture Behavioral of toplevel is
   ----------------------------------------------------------------
 
   -- Hit Input definition -- 2026/02/13 Change from 96 to 64
-  constant kNumInput    : integer:= 64; 
+  constant kNumInput    : integer:= 64;
 
   -- DIP -----------------------------------------------------------------------------------
   signal dip_sw       : std_logic_vector(DIP'range);
@@ -192,9 +171,7 @@ architecture Behavioral of toplevel is
   -- DCR --
   -- 2026/02/13 Comment out mzn_u and dcr_u
   -- signal mzn_u        : std_logic_vector(kNumInputMZN-1 downto 0);
-  --signal mzn_d        : std_logic_vector(kNumInputMZN-1 downto 0);
   -- signal dcr_u        : std_logic_vector(kNumInputMZN-1 downto 0);
-  --signal dcr_d        : std_logic_vector(kNumInputMZN-1 downto 0);
 
   -- MIKUMARI -----------------------------------------------------------------------------
   --constant  kPcbVersion : string:= "GN-2006-4";
@@ -526,42 +503,9 @@ architecture Behavioral of toplevel is
   constant kMiiPhyad      : std_logic_vector(kWidthPhyAddr-1 downto 0):= "00000";
   signal mii_init_mdc, mii_init_mdio : std_logic;
 
-  -- //2026/01/07
-  -- component mii_initializer is
-  --   port(
-  --     -- System
-  --     CLK         : in std_logic;
-  --     --RST         => system_reset,
-  --     RST         : in std_logic;
-  --     -- PHY
-  --     PHYAD       : in std_logic_vector(kWidthPhyAddr-1 downto 0);
-  --     -- MII
-  --     MDC         : out std_logic;
-  --     MDIO_OUT    : out std_logic;
-  --     -- status
-  --     COMPLETE    : out std_logic
-  --     );
-  -- end component;
-
   --signal mmcm_reset_all   : std_logic;
   signal mmcm_reset       : std_logic_vector(kNumPHY-1 downto 0);
   signal mmcm_locked      : std_logic;
-
-  -- signal gt0_qplloutclk, gt0_qplloutrefclk  : std_logic;
-  -- signal gtrefclk_i, gtrefclk_bufg  : std_logic;
-  -- signal txout_clk, rxout_clk       : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal user_clk, user_clk2, rxuser_clk, rxuser_clk2   : std_logic;
-
-  -- signal eth_tx_clk       : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal eth_tx_en        : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal eth_tx_er        : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal eth_tx_d         : typeTcpData;
-
-  -- signal eth_rx_clk       : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal eth_rx_dv        : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal eth_rx_er        : std_logic_vector(kNumPHY-1 downto 0);
-  -- signal eth_rx_d         : typeTcpData;
-
 
   -- Clock ---------------------------------------------------------------------------
   signal clk_gbe, clk_sys   : std_logic;
@@ -583,8 +527,6 @@ architecture Behavioral of toplevel is
         reset            : in     std_logic;
         locked           : out    std_logic;
         clk_in1          : in     std_logic
-        --clk_in1_p        : in     std_logic;
-        --clk_in1_n        : in     std_logic
         );
   end component;
 
@@ -629,8 +571,6 @@ architecture Behavioral of toplevel is
   clk_miku_locked <= mmcm_cdcm_locked and and_reduce(idelayctrl_ready);
   clk_locked      <= clk_sys_locked and clk_miku_locked;
 
-  --c6c_reset       <= (not clk_sys_locked) or (not delayed_usr_rstb);
-  --c6c_reset       <= '1';
   mmcm_cdcm_reset <= (not delayed_usr_rstb);
 
   system_reset      <= (not clk_miku_locked) or (not USR_RSTB);
@@ -687,7 +627,6 @@ architecture Behavioral of toplevel is
   dip_sw(7)   <= DIP(7);
   dip_sw(8)   <= DIP(8);
 
-  --LED        <= (clk_miku_locked and module_ready) & mikumari_link_up(kIdMikuSec) & is_ready_for_daq(lIdMikuSec) & daq_is_runnig; --StrLrTdc
   LED         <= (clk_miku_locked and module_ready) & DIP(kStandAlone.Index) & is_ready_for_daq(kIdMikuSec) & daq_is_runnig; --MikumriClockHub
 
 
@@ -714,16 +653,6 @@ architecture Behavioral of toplevel is
   --       O   => mzn_u(i),  -- Buffer output
   --       I   => MZN_UP(i), -- Diff_p buffer input (connect directly to top-level port)
   --       IB  => MZN_UN(i)  -- Diff_n buffer input (connect directly to top-level port)
-  --     );
-  --  dcr_d_IBUFDS_inst : IBUFDS
-  --     generic map (
-  --       DIFF_TERM     => TRUE,  -- Differential Termination
-  --       IBUF_LOW_PWR  => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
-  --       IOSTANDARD    => DcrDIoStd(i)
-  --     )port map (
-  --       O   => mzn_d(i),  -- Buffer output
-  --       I   => MZN_DP(i), -- Diff_p buffer input (connect directly to top-level port)
-  --       IB  => MZN_DN(i)  -- Diff_n buffer input (connect directly to top-level port)
   --     );
   --end generate;
 
@@ -753,7 +682,6 @@ architecture Behavioral of toplevel is
   end generate;
 
   -- Secondary Links ------------------------------------------------------------
-  --gen_mikumari : for i in 0 to kNumMikumari-1 generate
   laccp_reset(kIdMikuSec) <= system_reset or (not mikumari_link_up(kIdMikuSec));
 
   u_Miku_Inst : entity mylib.MikumariBlock
@@ -899,14 +827,6 @@ architecture Behavioral of toplevel is
         dataIntraOut      => data_laccp_intra_out,
         validIntraOut     => valid_laccp_intra_out,
 
-        -- Interconnect --
-        --isReadyInterIn    => (others => '0'),
-        --existInterOut     => open,
-        --dataInterIn       => (others => (others => '0')),
-        --validInterIn      => (others => '0'),
-        --dataInterOut      => open,
-        --validInterOut     => open,
-
         -- Interconnect -- Copy from ClkHub -- connected with each primary LaccpMainBlock
         isReadyInterIn    => (kPosCdd'range => is_ready_inter_down(kPosCdd'range), others => '0'),
         existInterOut     => is_ready_inter_up,
@@ -940,7 +860,6 @@ architecture Behavioral of toplevel is
         pulseTypeRx       => pulse_type_rx(kIdMikuSec)
 
       );
-  --end generate;
 
   -- Primary Links -----------------------------------------------------------------------------
   miku_fanout_reset   <= power_on_init when(DIP(kStandAlone.Index) = '1') else (not is_ready_for_daq(kIdMikuSec));
@@ -965,7 +884,7 @@ architecture Behavioral of toplevel is
         kCdcmModWidth    => 8,
         -- CDCM-TX --
         kIoStandardTx    => "LVDS",
-        kTxPolarity      => True, --Todo: Changed 2026/07/14
+        kTxPolarity      => True,
         -- CDCM-RX --
         genIDELAYCTRL    => FALSE,
         kDiffTerm        => TRUE,
@@ -1284,10 +1203,6 @@ architecture Behavioral of toplevel is
   scr_en_in(kMsbScr - kIndexHbfThrotTime)   <= scr_thr_on(4);
   scr_en_in(kMsbScr - kIndexMikuError)      <= (pattern_error(kIdMikuSec) or checksum_err(kIdMikuSec) or frame_broken(kIdMikuSec) or recv_terminated(kIdMikuSec)) and is_ready_for_daq(kIdMikuSec);
 
-  --scr_en_in(kMsbScr - kIndexTrgReq)         <= '0';
-  --scr_en_in(kMsbScr - kIndexTrgRejected)    <= '0';
-
-  -- Todo: Just copy from MikuHub -> Check!
   scr_en_in(kMsbScr - kIndexTrgReq)         <= laccp_pulse_in(kIdMikuCDD0)(kDownPulseTrigger);
   scr_en_in(kMsbScr - kIndexTrgRejected)    <= or_reduce(pulse_rejected);
 
@@ -1338,7 +1253,7 @@ architecture Behavioral of toplevel is
   --
   -- Streaming LR-TDC ---------------------------------------------------------------------
   signal_in_merge   <= MAIN_IN_D & MAIN_IN_U;
-  -- signal_in_merge   <= dcr_u & MAIN_IN_D & MAIN_IN_U; 2024/06/13 Comment out DCR input
+  -- signal_in_merge   <= dcr_u & MAIN_IN_D & MAIN_IN_U;
   strtdc_trigger_in <= laccp_pulse_out(kDownPulseTrigger) or local_trigger_in;
 
   u_SLT_Inst: entity mylib.StrLrTdc
@@ -1462,39 +1377,6 @@ architecture Behavioral of toplevel is
 
     --  reg_tmp_nim_out <= tmp_nim_out;
 
-  -- C6C -------------------------------------------------------------------------------
-  --CDCE_PDB  <= '0';
---  u_C6C_Inst : entity mylib.CDCE62002Controller
---    generic map(
---      kSysClkFreq         => 125_000_000
---      )
---    port map(
---      rst                 => system_reset,
---      clk                 => clk_slow,
---      refClkIn            => gmod_clk,
---
---      chipReset           => c6c_reset,
---      clkIndep            => clk_sys,
---      chipLock            => CDCE_LOCK,
---
---      -- Module output --
---      PDB                 => CDCE_PDB,
---      REF_CLKP            => CDCE_REFP,
---      REF_CLKN            => CDCE_REFN,
---      CSB_SPI             => CDCE_LE,
---      SCLK_SPI            => CDCE_SCLK,
---      MOSI_SPI            => CDCE_SI,
---      MISO_SPI            => CDCE_SO,
---
---      -- Local bus --
---      addrLocalBus        => addr_LocalBus,
---      dataLocalBusIn      => data_LocalBusIn,
---      dataLocalBusOut     => data_LocalBusOut(kC6C.ID),
---      reLocalBus          => re_LocalBus(kC6C.ID),
---      weLocalBus          => we_LocalBus(kC6C.ID),
---      readyLocalBus       => ready_LocalBus(kC6C.ID)
---    );
-
   -- MIG -------------------------------------------------------------------------------
 
   -- TSD -------------------------------------------------------------------------------
@@ -1593,11 +1475,10 @@ architecture Behavioral of toplevel is
 
   -- SiTCP Inst ------------------------------------------------------------------------
   PHY_MDIO    <= mdio_out when(mdio_oe = '1') else 'Z';
-  tcp_tx_clk  <= clk_sys; -- 2026/01/28
-  PHY_GTX_CLK <= clk_sys; -- 2026/01/28
+  tcp_tx_clk  <= clk_sys;
+  PHY_GTX_CLK <= clk_sys;
   PHY_HPD     <= '0';
 
-  --Todo : Check
   -- LrTDC
   u_SiTCPRst : entity mylib.ResetGen
     port map(system_reset or rst_from_miku, clk_sys, sitcp_reset);
@@ -1711,126 +1592,6 @@ architecture Behavioral of toplevel is
         );
   end generate;
 
-  -- //2026/01/07
-  -- -- SFP transceiver -------------------------------------------------------------------
-  -- u_MiiRstTimer_Inst : entity mylib.MiiRstTimer
-  --   port map(
-  --     rst         => emergency_reset(0),
-  --     clk         => clk_sys,
-  --     rstMiiOut   => mii_reset
-  --   );
-
-  -- //2026/01/07
-  -- u_MiiInit_Inst : mii_initializer
-  --   port map(
-  --     -- System
-  --     CLK         => clk_sys,
-  --     --RST         => system_reset,
-  --     RST         => mii_reset,
-  --     -- PHY
-  --     PHYAD       => kMiiPhyad,
-  --     -- MII
-  --     MDC         => mii_init_mdc,
-  --     MDIO_OUT    => mii_init_mdio,
-  --     -- status
-  --     COMPLETE    => open
-  --     );
-
-  --mmcm_reset_all  <= or_reduce(mmcm_reset); Todo: Check whether need or not
-
-  -- //2026/01/07
-  -- u_GtClockDist_Inst : entity mylib.GtClockDistributer2
-  --   port map(
-  --     -- GTX refclk --
-  --     GT_REFCLK_P   => GTX_REFCLK_P,
-  --     GT_REFCLK_N   => GTX_REFCLK_N,
-
-  --     gtRefClk      => gtrefclk_i,
-  --     gtRefClkBufg  => gtrefclk_bufg,
-
-  --     -- USERCLK2 --
-  --     mmcmReset     => mmcm_reset_all,
-  --     mmcmLocked    => mmcm_locked,
-  --     txOutClk      => txout_clk(0),
-  --     rxOutClk      => rxout_clk(0),
-
-  --     userClk       => user_clk,
-  --     userClk2      => user_clk2,
-  --     rxuserClk     => rxuser_clk,
-  --     rxuserClk2    => rxuser_clk2,
-
-  --     -- GTXE_COMMON --
-  --     reset         => pwr_on_reset,
-  --     clkIndep      => clk_gbe,
-  --     clkQPLL       => gt0_qplloutclk,
-  --     refclkQPLL    => gt0_qplloutrefclk
-  --     );
-
-  -- //2026/01/07
-  -- gen_pcspma : for i in 0 to kNumPHY-1 generate
-  --   u_pcspma_Inst : entity mylib.GbEPcsPma
-  --     port map(
-
-  --       --An independent clock source used as the reference clock for an
-  --       --IDELAYCTRL (if present) and for the main GT transceiver reset logic.
-  --       --This example design assumes that this is of frequency 200MHz.
-  --       independent_clock    => clk_gbe,
-
-  --       -- Tranceiver Interface
-  --       -----------------------
-  --       gtrefclk             => gtrefclk_i,
-  --       gtrefclk_bufg        => gtrefclk_bufg,
-
-  --       gt0_qplloutclk       => gt0_qplloutclk,
-  --       gt0_qplloutrefclk    => gt0_qplloutrefclk,
-
-  --       userclk              => user_clk,
-  --       userclk2             => user_clk2,
-  --       rxuserclk            => rxuser_clk,
-  --       rxuserclk2           => rxuser_clk2,
-
-  --       mmcm_locked          => mmcm_locked,
-  --       mmcm_reset           => mmcm_reset(i),
-
-  --       -- clockout --
-  --       txoutclk             => txout_clk(i),
-  --       rxoutclk             => rxout_clk(i),
-
-  --       -- Tranceiver Interface
-  --       -----------------------
-  --       txp                  => GTX_TX_P(i+1),
-  --       txn                  => GTX_TX_N(i+1),
-  --       rxp                  => GTX_RX_P(i+1),
-  --       rxn                  => GTX_RX_N(i+1),
-
-  --       -- GMII Interface (client MAC <=> PCS)
-  --       --------------------------------------
-  --       gmii_tx_clk          => eth_tx_clk(i),
-  --       gmii_rx_clk          => eth_rx_clk(i),
-  --       gmii_txd             => eth_tx_d(i),
-  --       gmii_tx_en           => eth_tx_en(i),
-  --       gmii_tx_er           => eth_tx_er(i),
-  --       gmii_rxd             => eth_rx_d(i),
-  --       gmii_rx_dv           => eth_rx_dv(i),
-  --       gmii_rx_er           => eth_rx_er(i),
-  --       -- Management: MDIO Interface
-  --       -----------------------------
-
-  --       mdc                  => mii_init_mdc,
-  --       mdio_i               => mii_init_mdio,
-  --       mdio_o               => open,
-  --       mdio_t               => open,
-  --       phyaddr              => "00000",
-  --       configuration_vector => "00000",
-  --       configuration_valid  => '0',
-
-  --       -- General IO's
-  --       ---------------
-  --       status_vector        => pcs_pma_status,
-  --       reset                => pwr_on_reset
-  --       );
-  -- end generate;
-
   -- Clock inst ------------------------------------------------------------------------
   --clk_slow  <= clk_sys;
   u_ClkMan_Inst   : clk_wiz_sys
@@ -1853,21 +1614,7 @@ architecture Behavioral of toplevel is
       O => gmod_clk, -- 1-bit output: Clock output
       I => mod_clk  -- 1-bit input: Clock input
     );
---
---  --
---  u_BUFG_Fast_inst :  BUFG
---    port map (
---      O => clk_fast, -- 1-bit output: Clock output
---      I => c6c_fast  -- 1-bit input: Clock input
---    );
---
---  u_BUFG_Slow_inst :  BUFG
---    port map (
---      O => clk_slow, -- 1-bit output: Clock output
---      I => c6c_slow  -- 1-bit input: Clock input
---    );
 
-  --
   u_CdcmMan_Inst : mmcm_cdcm
   port map(
     -- Clock in ports
@@ -1887,40 +1634,5 @@ architecture Behavioral of toplevel is
       clk_in2         => gmod_clk,
       clk_in_sel      => dip_sw(kStandAlone.Index)
       );
-
-
---  u_IBUFDS_SLOW_inst : IBUFDS
---    generic map (
---       DIFF_TERM => FALSE, -- Differential Termination
---       IBUF_LOW_PWR => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
---       IOSTANDARD => "LVDS")
---    port map (
---       O => c6c_slow,  -- Buffer output
---       I => CLK_SLOWP,  -- Diff_p buffer input (connect directly to top-level port)
---       IB => CLK_SLOWN -- Diff_n buffer input (connect directly to top-level port)
---       );
---
---  u_IBUFDS_FAST_inst : IBUFDS
---    generic map (
---       DIFF_TERM => FALSE, -- Differential Termination
---       IBUF_LOW_PWR => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
---       IOSTANDARD => "LVDS")
---    port map (
---       O => c6c_fast,  -- Buffer output
---       I => CLK_FASTP,  -- Diff_p buffer input (connect directly to top-level port)
---       IB => CLK_FASTN -- Diff_n buffer input (connect directly to top-level port)
---       );
---
-
---Todo : After debugging, delete
--- u_ila_0 : ila_0
---   PORT MAP (
--- 	  clk => clk_slow,
--- 	  probe0 => std_logic_vector(local_fine_offset),
---     probe1 => std_logic_vector(laccp_fine_offset),
---     probe2 => is_ready_for_daq(kIdMikuSec),
---     probe3 => laccp_reset(kIdMikuSec)
--- );
-
 
 end Behavioral;
