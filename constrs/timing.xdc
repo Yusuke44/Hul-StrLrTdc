@@ -81,4 +81,9 @@ set_false_path -through [get_ports {LED[2]}]
 set_false_path -through [get_ports {LED[3]}]
 set_false_path -through [get_ports {LED[4]}]
 
+# PBlock -- 2026/11/09
+#create_pblock pblock_1
+#resize_pblock pblock_1 -add {SLICE_X0Y3:SLICE_X2Y4}
+#add_cells_to_pblock pblock_1 [get_cells u_SLT_Inst/u_VitalBlock/u_incoming_buffer/for_process[70].u_incomingFifo]
+#add_cells_to_pblock pblock_1 [get_cells u_SLT_Inst/u_VitalBlock/gen_lrtdc.u_merger_block/gen_mergerFront[4].gen_last.u_mergerFront]
 

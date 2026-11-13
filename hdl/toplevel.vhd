@@ -70,9 +70,9 @@ entity toplevel is
     MAIN_IN_D           : in std_logic_vector(31 downto 0);
 
 -- Mezzanine slot -------------------------------------------------------
--- Up slot -- 2026/02/13 Comment out
-    -- MZN_UP              : in std_logic_vector(31 downto 0);
-    -- MZN_UN              : in std_logic_vector(31 downto 0);
+-- Up slot
+    MZN_UP              : in std_logic_vector(31 downto 0);
+    MZN_UN              : in std_logic_vector(31 downto 0);
 
 -- DDR3 SDRAM -----------------------------------------------------------
 
@@ -153,7 +153,7 @@ architecture Behavioral of toplevel is
   ----------------------------------------------------------------
 
   -- Hit Input definition -- 2026/02/13 Change from 96 to 64
-  constant kNumInput    : integer:= 64;
+  constant kNumInput    : integer:= 96;
 
   -- DIP -----------------------------------------------------------------------------------
   signal dip_sw       : std_logic_vector(DIP'range);
@@ -169,9 +169,8 @@ architecture Behavioral of toplevel is
 
   -- Mezzanine ----------------------------------------------------------------------------
   -- DCR --
-  -- 2026/02/13 Comment out mzn_u and dcr_u
-  -- signal mzn_u        : std_logic_vector(kNumInputMZN-1 downto 0);
-  -- signal dcr_u        : std_logic_vector(kNumInputMZN-1 downto 0);
+  signal mzn_u        : std_logic_vector(kNumInputMZN-1 downto 0);
+  signal dcr_u        : std_logic_vector(kNumInputMZN-1 downto 0);
 
   -- MIKUMARI -----------------------------------------------------------------------------
   --constant  kPcbVersion : string:= "GN-2006-4";
@@ -611,6 +610,7 @@ architecture Behavioral of toplevel is
       -- D2 => reg_tmp_nim_out(i),  -- 1-bit data input (negative edge)
     );
   end generate;
+  
 --  u_nimo_buf : process(clk_slow)
 --  begin
 --    if(clk_slow'event and clk_slow = '1') then
@@ -641,29 +641,26 @@ architecture Behavioral of toplevel is
   miku_rxp(kNumMikumari-2 downto 0)  <= CDCM_RXP;
   miku_rxn(kNumMikumari-2 downto 0)  <= CDCM_RXN;
 
-  -- DCR TODO: One mez
-  --2026/02/13 Comment out MZN_U
-  -- gen_dcr : for i in 0 to kNumInputMZN-1 generate
-  --   dcr_u_IBUFDS_inst : IBUFDS
-  --     generic map (
-  --       DIFF_TERM     => TRUE,  -- Differential Termination
-  --       IBUF_LOW_PWR  => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
-  --       IOSTANDARD    => DcrUIoStd(i)
-  --     )port map (
-  --       O   => mzn_u(i),  -- Buffer output
-  --       I   => MZN_UP(i), -- Diff_p buffer input (connect directly to top-level port)
-  --       IB  => MZN_UN(i)  -- Diff_n buffer input (connect directly to top-level port)
-  --     );
-  --end generate;
+  gen_dcr : for i in 0 to kNumInputMZN-1 generate
+    dcr_u_IBUFDS_inst : IBUFDS
+      generic map (
+        DIFF_TERM     => TRUE,  -- Differential Termination
+        IBUF_LOW_PWR  => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
+        IOSTANDARD    => DcrUIoStd(i)
+      )port map (
+        O   => mzn_u(i),  -- Buffer output
+        I   => MZN_UP(i), -- Diff_p buffer input (connect directly to top-level port)
+        IB  => MZN_UN(i)  -- Diff_n buffer input (connect directly to top-level port)
+      );
+  end generate;
 
-  -- 2026/02/13 Comment out DCR_NetAssign
-  -- u_DCR_NetAssign: entity mylib.DCR_NetAssign
-  -- port map(
-  --   mznInU  => mzn_u,
-  --   mznInD  => (others => '0'),
-  --   dcrOutU => dcr_u,
-  --   dcrOutD => open
-  -- );
+  u_DCR_NetAssign: entity mylib.DCR_NetAssign
+  port map(
+    mznInU  => mzn_u,
+    mznInD  => (others => '0'),
+    dcrOutU => dcr_u,
+    dcrOutD => open
+  );
 
   -- MIKUMARI --------------------------------------------------------------------------
   u_KeepInit : entity mylib.RstDelayTimer
@@ -1252,8 +1249,8 @@ architecture Behavioral of toplevel is
 
   --
   -- Streaming LR-TDC ---------------------------------------------------------------------
-  signal_in_merge   <= MAIN_IN_D & MAIN_IN_U;
-  -- signal_in_merge   <= dcr_u & MAIN_IN_D & MAIN_IN_U;
+  -- signal_in_merge   <= MAIN_IN_D & MAIN_IN_U;
+  signal_in_merge   <= dcr_u & MAIN_IN_D & MAIN_IN_U;
   strtdc_trigger_in <= laccp_pulse_out(kDownPulseTrigger) or local_trigger_in;
 
   u_SLT_Inst: entity mylib.StrLrTdc
