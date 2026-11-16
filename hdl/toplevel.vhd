@@ -152,7 +152,7 @@ architecture Behavioral of toplevel is
   signal frame_flag_out_scnd : std_logic_vector(kWidthFrameFlag-1 downto 0);
   ----------------------------------------------------------------
 
-  -- Hit Input definition -- 2026/02/13 Change from 96 to 64
+  -- Hit Input definition --
   constant kNumInput    : integer:= 96;
 
   -- DIP -----------------------------------------------------------------------------------
