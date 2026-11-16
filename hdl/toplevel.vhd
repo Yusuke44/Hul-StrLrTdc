@@ -646,7 +646,7 @@ architecture Behavioral of toplevel is
       generic map (
         DIFF_TERM     => TRUE,  -- Differential Termination
         IBUF_LOW_PWR  => FALSE, -- Low power (TRUE) vs. performance (FALSE) setting for referenced I/O standards
-        IOSTANDARD    => DcrUIoStd(i)
+        IOSTANDARD    => "LVDS"
       )port map (
         O   => mzn_u(i),  -- Buffer output
         I   => MZN_UP(i), -- Diff_p buffer input (connect directly to top-level port)
