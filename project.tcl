@@ -301,6 +301,7 @@ proc checkRequiredFiles { origin_dir} {
  "[file normalize "$origin_dir/constrs/timing.xdc"]"\
  # "[file normalize "$origin_dir/constrs/gig_ethernet.xdc"]"\
  "[file normalize "$origin_dir/constrs/impl.xdc"]"\
+ "[file normalize "$origin_dir/constrs/floorplan.xdc"]"\ 
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
@@ -1465,6 +1466,15 @@ set_property -name "library" -value "mylib" -objects $file_obj
 set file "[file normalize "$origin_dir/constrs/impl.xdc"]"
 set file_added [add_files -norecurse -fileset $obj [list $file]]
 set file "$origin_dir/constrs/impl.xdc"
+set file [file normalize $file]
+set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
+set_property -name "file_type" -value "XDC" -objects $file_obj
+set_property -name "library" -value "mylib" -objects $file_obj
+
+# Add/Import constrs file and set constrs file properties
+set file "[file normalize "$origin_dir/constrs/floorplan.xdc"]"
+set file_added [add_files -norecurse -fileset $obj [list $file]]
+set file "$origin_dir/constrs/floorplan.xdc"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
 set_property -name "file_type" -value "XDC" -objects $file_obj
