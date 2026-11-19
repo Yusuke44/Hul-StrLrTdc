@@ -164,7 +164,6 @@
 proc checkRequiredFiles { origin_dir} {
   set status true
   set files [list \
- "[file normalize "$origin_dir/ip/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma.xci"]"\
  "[file normalize "$origin_dir/ip/RbcpCdc_SysToLink/RbcpCdc_SysToLink.xci"]"\
  "[file normalize "$origin_dir/ip/RbcpCdc_LinkToSys/RbcpCdc_LinkToSys.xci"]"\
  "[file normalize "$origin_dir/hdl/bbt-sitcp-core/SiTCP_XC7K_32K_BBT_V110.edf"]"\
@@ -230,8 +229,6 @@ proc checkRequiredFiles { origin_dir} {
  "[file normalize "$origin_dir/hdl/strtdc/trigEmulation/defGateGen.vhd"]"\
  "[file normalize "$origin_dir/hdl/laccp/utility/MyDPRamSE.vhd"]"\
  "[file normalize "$origin_dir/hdl/strtdc/trigEmulation/GateGen.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/GbEPcsPma.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/GtClockDistributer2.vhd"]"\
  "[file normalize "$origin_dir/hdl/strtdc/throttling/defThrottling.vhd"]"\
  "[file normalize "$origin_dir/hdl/strtdc/throttling/HbfThrottling.vhd"]"\
  "[file normalize "$origin_dir/hdl/laccp/utility/MyDPRamSRRT.vhd"]"\
@@ -268,12 +265,6 @@ proc checkRequiredFiles { origin_dir} {
  "[file normalize "$origin_dir/hdl/strtdc/odpblock/TOTFilter.vhd"]"\
  "[file normalize "$origin_dir/hdl/common/main/defDCR.vhd"]"\
  "[file normalize "$origin_dir/hdl/strtdc/odpblock/defTDCDelayBuffer.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_clocking.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_gt_common.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_reset_sync_ex.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_resets.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_sync_block_ex.vhd"]"\
- "[file normalize "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_tx_elastic_buffer.vhd"]"\
  "[file normalize "$origin_dir/hdl/common/sitcp/global_sitcp_manager.vhd"]"\
  "[file normalize "$origin_dir/hdl/strtdc/delimiter/DelimiterGenerator.vhd"]"\
  "[file normalize "$origin_dir/hdl/strtdc/odpblock/DelimiterInserter.vhd"]"\
@@ -426,7 +417,6 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 # Set 'sources_1' fileset object
 set obj [get_filesets sources_1]
 set files [list \
- [file normalize "${origin_dir}/ip/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma.xci"] \
  [file normalize "${origin_dir}/ip/RbcpCdc_SysToLink/RbcpCdc_SysToLink.xci"] \
  [file normalize "${origin_dir}/ip/RbcpCdc_LinkToSys/RbcpCdc_LinkToSys.xci"] \
  [file normalize "${origin_dir}/hdl/bbt-sitcp-core/SiTCP_XC7K_32K_BBT_V110.edf"] \
@@ -492,8 +482,6 @@ set files [list \
  [file normalize "${origin_dir}/hdl/strtdc/trigEmulation/defGateGen.vhd"] \
  [file normalize "${origin_dir}/hdl/laccp/utility/MyDPRamSE.vhd"] \
  [file normalize "${origin_dir}/hdl/strtdc/trigEmulation/GateGen.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/GbEPcsPma.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/GtClockDistributer2.vhd"] \
  [file normalize "${origin_dir}/hdl/strtdc/throttling/defThrottling.vhd"] \
  [file normalize "${origin_dir}/hdl/strtdc/throttling/HbfThrottling.vhd"] \
  [file normalize "${origin_dir}/hdl/laccp/utility/MyDPRamSRRT.vhd"] \
@@ -530,12 +518,6 @@ set files [list \
  [file normalize "${origin_dir}/hdl/strtdc/odpblock/TOTFilter.vhd"] \
  [file normalize "${origin_dir}/hdl/common/main/defDCR.vhd"] \
  [file normalize "${origin_dir}/hdl/strtdc/odpblock/defTDCDelayBuffer.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_clocking.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_gt_common.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_reset_sync_ex.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_resets.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_sync_block_ex.vhd"] \
- [file normalize "${origin_dir}/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_tx_elastic_buffer.vhd"] \
  [file normalize "${origin_dir}/hdl/common/sitcp/global_sitcp_manager.vhd"] \
  [file normalize "${origin_dir}/hdl/strtdc/delimiter/DelimiterGenerator.vhd"] \
  [file normalize "${origin_dir}/hdl/strtdc/odpblock/DelimiterInserter.vhd"] \
@@ -561,17 +543,6 @@ set files [list \
  [file normalize "${origin_dir}/hdl/utility/mikumari/defCDD.vhd"] \
 ]
 add_files -norecurse -fileset $obj $files
-
-# Set 'sources_1' fileset file properties for remote files
-set file "$origin_dir/ip/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma.xci"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "generate_files_for_reference" -value "0" -objects $file_obj
-if { ![get_property "is_locked" $file_obj] } {
-  set_property -name "is_locked" -value "1" -objects $file_obj
-}
-set_property -name "library" -value "mylib" -objects $file_obj
-set_property -name "registered_with_manager" -value "1" -objects $file_obj
 
 set file "$origin_dir/ip/RbcpCdc_SysToLink/RbcpCdc_SysToLink.xci"
 set file [file normalize $file]
@@ -1015,18 +986,6 @@ set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "VHDL" -objects $file_obj
 set_property -name "library" -value "mylib" -objects $file_obj
 
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/GbEPcsPma.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/GtClockDistributer2.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
 set file "$origin_dir/hdl/strtdc/throttling/defThrottling.vhd"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
@@ -1238,42 +1197,6 @@ set_property -name "file_type" -value "VHDL" -objects $file_obj
 set_property -name "library" -value "mylib" -objects $file_obj
 
 set file "$origin_dir/hdl/strtdc/odpblock/defTDCDelayBuffer.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_clocking.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_gt_common.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_reset_sync_ex.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_resets.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_sync_block_ex.vhd"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "file_type" -value "VHDL" -objects $file_obj
-set_property -name "library" -value "mylib" -objects $file_obj
-
-set file "$origin_dir/hdl/common/gig_ethernet_pcs_pma/gig_ethernet_pcs_pma_tx_elastic_buffer.vhd"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "VHDL" -objects $file_obj
